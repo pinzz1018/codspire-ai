@@ -629,6 +629,39 @@
   .connector-error-text { font-size: 12.5px; color: #c0392b; display: none; }
   .connector-error-text.visible { display: block; }
 
+  /* GitHub write-action confirmation modal */
+  .gh-confirm-overlay {
+    position: fixed; inset: 0; background: rgba(43,36,29,0.4); z-index: 60;
+    display: none; align-items: center; justify-content: center; padding: 20px;
+  }
+  .gh-confirm-overlay.visible { display: flex; }
+  .gh-confirm-card {
+    background: var(--cream); border: 1px solid var(--border); border-radius: 18px;
+    width: 100%; max-width: 360px; padding: 18px 18px 16px 18px;
+    display: flex; flex-direction: column; gap: 12px;
+    animation: ghConfirmIn 0.18s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+  @keyframes ghConfirmIn { from { transform: scale(0.94); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .gh-confirm-header { display: flex; align-items: center; gap: 10px; }
+  .gh-confirm-icon {
+    width: 30px; height: 30px; border-radius: 50%; background: var(--cream-dark);
+    display: flex; align-items: center; justify-content: center; color: var(--ink); flex-shrink: 0;
+  }
+  .gh-confirm-title { font-size: 14.5px; font-weight: 700; color: var(--ink); }
+  .gh-confirm-body { font-size: 13.5px; color: var(--ink); line-height: 1.5; }
+  .gh-confirm-meta {
+    font-size: 12px; color: var(--ink-soft); background: var(--cream-darker);
+    border-radius: 10px; padding: 8px 10px; word-break: break-word;
+  }
+  .gh-confirm-meta div + div { margin-top: 3px; }
+  .gh-confirm-btn-row { display: flex; gap: 8px; margin-top: 2px; }
+  .gh-confirm-btn {
+    flex: 1; border: none; border-radius: 10px; padding: 10px 12px; font-size: 13.5px;
+    font-weight: 600; cursor: pointer; font-family: inherit;
+  }
+  .gh-confirm-btn-cancel { background: var(--cream-darker); color: var(--ink); }
+  .gh-confirm-btn-confirm { background: var(--ink); color: #fff; }
+
   .language-page-list { display: flex; flex-direction: column; gap: 8px; }
   .language-page-item {
     display: flex; justify-content: space-between; align-items: center;
@@ -953,6 +986,23 @@
     </div>
   </div>
 
+  <div class="gh-confirm-overlay" id="ghConfirmOverlay">
+    <div class="gh-confirm-card">
+      <div class="gh-confirm-header">
+        <div class="gh-confirm-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.69-1.28-1.69-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.03 1.75 2.7 1.25 3.36.96.1-.75.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.15 1.18a10.9 10.9 0 0 1 5.74 0c2.19-1.49 3.15-1.18 3.15-1.18.62 1.58.23 2.75.11 3.04.74.8 1.18 1.83 1.18 3.09 0 4.41-2.7 5.38-5.27 5.67.42.36.78 1.07.78 2.15 0 1.56-.01 2.81-.01 3.19 0 .31.21.67.8.56A10.51 10.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
+        </div>
+        <span class="gh-confirm-title" id="ghConfirmTitle">GitHub action</span>
+      </div>
+      <div class="gh-confirm-body" id="ghConfirmBody"></div>
+      <div class="gh-confirm-meta" id="ghConfirmMeta"></div>
+      <div class="gh-confirm-btn-row">
+        <button class="gh-confirm-btn gh-confirm-btn-cancel" id="ghConfirmCancelBtn" data-i18n="connectors.cancel">Cancel</button>
+        <button class="gh-confirm-btn gh-confirm-btn-confirm" id="ghConfirmOkBtn" data-i18n="connectors.confirm">Confirm</button>
+      </div>
+    </div>
+  </div>
+
   <div class="fullscreen-page" id="connectorsPage">
     <div class="fullscreen-page-header">
       <button class="fullscreen-page-back" id="closeConnectorsPageBtn" aria-label="Back">
@@ -1109,6 +1159,15 @@ const I18N_STRINGS = {
     'connectors.connectFailed': 'Couldn\u2019t connect to GitHub. Please try again.',
     'connectors.connecting': 'Connecting\u2026',
     'connectors.disconnectConfirm': 'Disconnect your GitHub account?',
+    'connectors.confirm': 'Confirm',
+    'connectors.cancel': 'Cancel',
+    'connectors.confirmWriteTitle': 'Write to GitHub',
+    'connectors.confirmDeleteTitle': 'Delete from GitHub',
+    'connectors.confirmWriteBody': 'Codspire wants to write to a file in your repo. Review the details before approving.',
+    'connectors.confirmDeleteBody': 'Codspire wants to delete a file from your repo. Review the details before approving.',
+    'connectors.metaRepo': 'Repo',
+    'connectors.metaFile': 'File',
+    'connectors.metaCommit': 'Commit message',
     'settings.title': 'Settings',
     'settings.selectLanguage': 'Select language',
     'settings.langEnglish': 'English',
@@ -1189,6 +1248,15 @@ const I18N_STRINGS = {
     'connectors.connectFailed': 'Gagal terhubung ke GitHub. Coba lagi.',
     'connectors.connecting': 'Menghubungkan\u2026',
     'connectors.disconnectConfirm': 'Putuskan koneksi akun GitHub kamu?',
+    'connectors.confirm': 'Konfirmasi',
+    'connectors.cancel': 'Batal',
+    'connectors.confirmWriteTitle': 'Tulis ke GitHub',
+    'connectors.confirmDeleteTitle': 'Hapus dari GitHub',
+    'connectors.confirmWriteBody': 'Codspire mau menulis ke file di repo kamu. Cek dulu detailnya sebelum menyetujui.',
+    'connectors.confirmDeleteBody': 'Codspire mau menghapus file dari repo kamu. Cek dulu detailnya sebelum menyetujui.',
+    'connectors.metaRepo': 'Repo',
+    'connectors.metaFile': 'File',
+    'connectors.metaCommit': 'Pesan commit',
     'settings.title': 'Pengaturan',
     'settings.selectLanguage': 'Pilih bahasa',
     'settings.langEnglish': 'English',
@@ -1416,6 +1484,28 @@ async function handleGithubDisconnect() {
   await refreshGithubConnectorUI();
 }
 
+function showGithubConfirmSheet(pendingConfirmation) {
+  const isDelete = pendingConfirmation.writeCallName === 'github_delete_file';
+  const args = pendingConfirmation.writeCallArgs || {};
+  document.getElementById('ghConfirmTitle').textContent = isDelete ? t('connectors.confirmDeleteTitle') : t('connectors.confirmWriteTitle');
+  document.getElementById('ghConfirmBody').textContent = isDelete ? t('connectors.confirmDeleteBody') : t('connectors.confirmWriteBody');
+  const metaEl = document.getElementById('ghConfirmMeta');
+  metaEl.innerHTML = '';
+  const addMetaRow = (labelKey, value) => {
+    if (!value) return;
+    const row = document.createElement('div');
+    row.textContent = t(labelKey) + ': ' + value;
+    metaEl.appendChild(row);
+  };
+  addMetaRow('connectors.metaRepo', args.repo);
+  addMetaRow('connectors.metaFile', args.path);
+  addMetaRow('connectors.metaCommit', args.commitMessage);
+  document.getElementById('ghConfirmOverlay').classList.add('visible');
+}
+function hideGithubConfirmSheet() {
+  document.getElementById('ghConfirmOverlay').classList.remove('visible');
+}
+
 // ---- API keys (shared collection, admin-write-only via security rules) ----
 async function loadApiKeys() {
   if (usingFirestore()) {
@@ -1586,6 +1676,171 @@ const MEMORY_TOOL_DECLARATION = {
   }
 };
 
+const GITHUB_TOOL_DECLARATIONS = [
+  {
+    name: 'github_list_repos',
+    description: 'List the repositories owned by the connected GitHub account. Use this when the user asks how many repos they have, wants a list of their repos, or asks something general about "my repos" without naming one.',
+    parameters: { type: 'object', properties: {} }
+  },
+  {
+    name: 'github_list_files',
+    description: 'List files and folders at a given path inside a specific repo. Use this to explore a repo\'s structure before reading a file, or when the user asks what\'s inside a repo/folder.',
+    parameters: {
+      type: 'object',
+      properties: {
+        repo: { type: 'string', description: 'Repository name, e.g. "codspire-ai".' },
+        path: { type: 'string', description: 'Folder path inside the repo. Use empty string for the repo root.' }
+      },
+      required: ['repo']
+    }
+  },
+  {
+    name: 'github_read_file',
+    description: 'Read the full text content of a specific file in a repo. Use this when the user asks to read, show, explain, or review a specific file.',
+    parameters: {
+      type: 'object',
+      properties: {
+        repo: { type: 'string', description: 'Repository name, e.g. "codspire-ai".' },
+        path: { type: 'string', description: 'Full file path inside the repo, e.g. "index.html" or "src/app.js".' }
+      },
+      required: ['repo', 'path']
+    }
+  },
+  {
+    name: 'github_write_file',
+    description: 'Create a new file or overwrite an existing file\'s content in a repo, then commit and push it. This is a WRITE action — it will always be shown to the user as a confirmation request first, and only actually happens if they approve it. Always read the current file first with github_read_file before editing it, so your new content is a correct, complete version of the file (not a partial snippet), unless the user is clearly asking to create a brand-new file.',
+    parameters: {
+      type: 'object',
+      properties: {
+        repo: { type: 'string', description: 'Repository name.' },
+        path: { type: 'string', description: 'Full file path inside the repo.' },
+        content: { type: 'string', description: 'The complete new file content to write.' },
+        commitMessage: { type: 'string', description: 'A short, descriptive commit message summarizing the change, e.g. "Fix button color in index.html".' }
+      },
+      required: ['repo', 'path', 'content', 'commitMessage']
+    }
+  },
+  {
+    name: 'github_delete_file',
+    description: 'Delete a file from a repo and push the commit. This is a WRITE action — it will always be shown to the user as a confirmation request first, and only actually happens if they approve it.',
+    parameters: {
+      type: 'object',
+      properties: {
+        repo: { type: 'string', description: 'Repository name.' },
+        path: { type: 'string', description: 'Full file path inside the repo to delete.' },
+        commitMessage: { type: 'string', description: 'A short commit message describing the deletion.' }
+      },
+      required: ['repo', 'path', 'commitMessage']
+    }
+  }
+];
+const GITHUB_WRITE_TOOL_NAMES = ['github_write_file', 'github_delete_file'];
+const GITHUB_READ_TOOL_NAMES = ['github_list_repos', 'github_list_files', 'github_read_file'];
+
+async function githubApiRequest(path, token, options) {
+  const res = await fetch('https://api.github.com' + path, {
+    ...options,
+    headers: {
+      'Authorization': 'Bearer ' + token,
+      'Accept': 'application/vnd.github+json',
+      ...(options && options.headers ? options.headers : {})
+    }
+  });
+  return res;
+}
+
+async function executeGithubReadTool(name, args, token, githubLogin) {
+  try {
+    if (name === 'github_list_repos') {
+      const res = await githubApiRequest('/user/repos?per_page=100&sort=updated', token);
+      if (!res.ok) return { error: `GitHub API error ${res.status}` };
+      const repos = await res.json();
+      return {
+        count: repos.length,
+        repos: repos.map(r => ({ name: r.name, private: r.private, description: r.description || '', defaultBranch: r.default_branch, updatedAt: r.updated_at }))
+      };
+    }
+    if (name === 'github_list_files') {
+      const owner = githubLogin;
+      const repo = args.repo;
+      const path = args.path || '';
+      const res = await githubApiRequest(`/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}`, token);
+      if (!res.ok) return { error: `GitHub API error ${res.status}: could not list "${path}" in ${repo}` };
+      const data = await res.json();
+      const items = Array.isArray(data) ? data : [data];
+      return { path, items: items.map(it => ({ name: it.name, type: it.type, path: it.path, size: it.size })) };
+    }
+    if (name === 'github_read_file') {
+      const owner = githubLogin;
+      const repo = args.repo;
+      const path = args.path;
+      const res = await githubApiRequest(`/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}`, token);
+      if (!res.ok) return { error: `GitHub API error ${res.status}: could not read "${path}" in ${repo}` };
+      const data = await res.json();
+      if (Array.isArray(data) || data.type !== 'file') return { error: `"${path}" is not a file.` };
+      const content = data.encoding === 'base64' ? decodeURIComponent(escape(atob(data.content.replace(/\n/g, '')))) : data.content;
+      return { path, content, sha: data.sha, size: data.size };
+    }
+    return { error: 'Unknown tool' };
+  } catch (err) {
+    console.error('GitHub read tool failed', name, err);
+    return { error: 'Request to GitHub failed: ' + err.message };
+  }
+}
+
+async function executeGithubWriteTool(name, args, token, githubLogin) {
+  try {
+    const owner = githubLogin;
+    const repo = args.repo;
+    const path = args.path;
+    if (name === 'github_write_file') {
+      let sha = undefined;
+      const existing = await githubApiRequest(`/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}`, token);
+      if (existing.ok) {
+        const existingData = await existing.json();
+        if (!Array.isArray(existingData)) sha = existingData.sha;
+      }
+      const body = {
+        message: args.commitMessage || `Update ${path}`,
+        content: btoa(unescape(encodeURIComponent(args.content))),
+      };
+      if (sha) body.sha = sha;
+      const res = await githubApiRequest(`/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}`, token, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      if (!res.ok) {
+        const errBody = await res.text();
+        return { error: `GitHub API error ${res.status}: ${errBody}` };
+      }
+      const data = await res.json();
+      return { success: true, path, commitUrl: data.commit ? data.commit.html_url : null };
+    }
+    if (name === 'github_delete_file') {
+      const existing = await githubApiRequest(`/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}`, token);
+      if (!existing.ok) return { error: `GitHub API error ${existing.status}: could not find "${path}" in ${repo}` };
+      const existingData = await existing.json();
+      if (Array.isArray(existingData)) return { error: `"${path}" is not a file.` };
+      const res = await githubApiRequest(`/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}`, token, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: args.commitMessage || `Delete ${path}`, sha: existingData.sha })
+      });
+      if (!res.ok) {
+        const errBody = await res.text();
+        return { error: `GitHub API error ${res.status}: ${errBody}` };
+      }
+      return { success: true, path };
+    }
+    return { error: 'Unknown tool' };
+  } catch (err) {
+    console.error('GitHub write tool failed', name, err);
+    return { error: 'Request to GitHub failed: ' + err.message };
+  }
+}
+
+
 async function callGeminiWithRotation(msgs, onKeyUsed, systemPromptOverride, options) {
   if (!apiKeys || apiKeys.length === 0) throw new Error('NO_KEYS');
   const activeKeys = apiKeys.filter(k => k.status !== 'disabled');
@@ -1594,6 +1849,7 @@ async function callGeminiWithRotation(msgs, onKeyUsed, systemPromptOverride, opt
   let lastError = null;
   const effectiveSystemPrompt = systemPromptOverride || buildSystemPrompt();
   const enableMemoryTool = !!(options && options.enableMemoryTool);
+  const githubCtx = options && options.githubCtx; // { token, login } or null
 
   for (const keyObj of activeKeys) {
     try {
@@ -1602,78 +1858,34 @@ async function callGeminiWithRotation(msgs, onKeyUsed, systemPromptOverride, opt
         parts: [{ text: m.content }]
       }));
 
+      const functionDeclarations = [];
+      if (enableMemoryTool) functionDeclarations.push(MEMORY_TOOL_DECLARATION);
+      if (githubCtx) functionDeclarations.push(...GITHUB_TOOL_DECLARATIONS);
+
       const requestBody = {
         system_instruction: { parts: [{ text: effectiveSystemPrompt }] },
         contents,
         generationConfig: { temperature: 0.8, maxOutputTokens: 4096 }
       };
-      if (enableMemoryTool) {
-        requestBody.tools = [{ functionDeclarations: [MEMORY_TOOL_DECLARATION] }];
+      if (functionDeclarations.length > 0) {
+        requestBody.tools = [{ functionDeclarations }];
       }
 
-      // Loop to auto-handle tool calls (Gemini native function calling) until we get final text.
-      let finalText = null;
-      let safetyCounter = 0;
-      while (finalText === null && safetyCounter < 5) {
-        safetyCounter++;
-        const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${keyObj.key}`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(requestBody)
-          }
-        );
-
-        if (response.status === 429 || response.status === 403) {
-          lastError = new Error(`Key exhausted (status ${response.status})`);
-          onKeyUsed(keyObj.id, 'exhausted');
-          break;
-        }
-        if (!response.ok) {
-          const errText = await response.text();
-          lastError = new Error(`API error ${response.status}: ${errText}`);
-          break;
-        }
-
-        const data = await response.json();
-        const candidateParts = data?.candidates?.[0]?.content?.parts || [];
-        const functionCalls = candidateParts.filter(p => p.functionCall);
-        const textPart = candidateParts.find(p => typeof p.text === 'string');
-
-        if (functionCalls.length > 0 && enableMemoryTool) {
-          // Apply each remember_user_info call to memory immediately.
-          const responseParts = [];
-          for (const fc of functionCalls) {
-            if (fc.functionCall.name === 'remember_user_info') {
-              const args = fc.functionCall.args || {};
-              const fact = typeof args.fact === 'string' ? args.fact : null;
-              const category = typeof args.category === 'string' ? args.category : 'interest';
-              let resultStatus = 'skipped';
-              if (fact) {
-                resultStatus = await addMemoryFact(category, fact);
-              }
-              responseParts.push({
-                functionResponse: {
-                  name: fc.functionCall.name,
-                  response: { status: resultStatus }
-                }
-              });
-            }
-          }
-          // Append model's turn (with functionCall parts) + our functionResponse turns, then continue the loop.
-          requestBody.contents.push({ role: 'model', parts: candidateParts });
-          requestBody.contents.push({ role: 'user', parts: responseParts });
-          continue;
-        }
-
-        if (!textPart || !textPart.text) { lastError = new Error('Empty response from model'); break; }
-        finalText = textPart.text;
+      const result = await runGeminiToolLoop(requestBody, keyObj, enableMemoryTool, githubCtx);
+      if (result.status === 'key_exhausted') {
+        lastError = new Error(`Key exhausted (status ${result.httpStatus})`);
+        onKeyUsed(keyObj.id, 'exhausted');
+        continue;
       }
-
-      if (finalText === null) continue;
+      if (result.status === 'error') {
+        lastError = result.error;
+        continue;
+      }
       onKeyUsed(keyObj.id, 'success');
-      return finalText;
+      if (result.status === 'pending_confirmation') {
+        return { pendingConfirmation: result.pendingConfirmation };
+      }
+      return result.finalText;
     } catch (err) {
       lastError = err;
       continue;
@@ -1682,7 +1894,120 @@ async function callGeminiWithRotation(msgs, onKeyUsed, systemPromptOverride, opt
   throw lastError || new Error('ALL_KEYS_FAILED');
 }
 
-function buildSystemPrompt() {
+// Runs the Gemini tool-calling loop against a single API key/requestBody.
+// Read-tool calls (github_list_repos etc.) auto-execute and the loop continues.
+// Write-tool calls (github_write_file, github_delete_file) pause the loop and
+// return status 'pending_confirmation' so the UI can show a confirm/cancel box;
+// the loop is resumed later via resumeGeminiToolLoop() once the user decides.
+async function runGeminiToolLoop(requestBody, keyObj, enableMemoryTool, githubCtx) {
+  let finalText = null;
+  let safetyCounter = 0;
+  while (finalText === null && safetyCounter < 8) {
+    safetyCounter++;
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${keyObj.key}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody)
+      }
+    );
+
+    if (response.status === 429 || response.status === 403) {
+      return { status: 'key_exhausted', httpStatus: response.status };
+    }
+    if (!response.ok) {
+      const errText = await response.text();
+      return { status: 'error', error: new Error(`API error ${response.status}: ${errText}`) };
+    }
+
+    const data = await response.json();
+    const candidateParts = data?.candidates?.[0]?.content?.parts || [];
+    const functionCalls = candidateParts.filter(p => p.functionCall);
+    const textPart = candidateParts.find(p => typeof p.text === 'string');
+
+    if (functionCalls.length > 0) {
+      // A write-tool call pauses the whole loop for user confirmation — even if
+      // other calls are bundled alongside it, we hold everything until resolved.
+      const writeCall = functionCalls.find(fc => GITHUB_WRITE_TOOL_NAMES.includes(fc.functionCall.name));
+      if (writeCall && githubCtx) {
+        return {
+          status: 'pending_confirmation',
+          pendingConfirmation: {
+            requestBody, keyObj, enableMemoryTool, githubCtx,
+            candidateParts, functionCalls,
+            writeCallName: writeCall.functionCall.name,
+            writeCallArgs: writeCall.functionCall.args || {}
+          }
+        };
+      }
+
+      const responseParts = [];
+      for (const fc of functionCalls) {
+        const fcName = fc.functionCall.name;
+        const args = fc.functionCall.args || {};
+        if (fcName === 'remember_user_info' && enableMemoryTool) {
+          const fact = typeof args.fact === 'string' ? args.fact : null;
+          const category = typeof args.category === 'string' ? args.category : 'interest';
+          const resultStatus = fact ? await addMemoryFact(category, fact) : 'skipped';
+          responseParts.push({ functionResponse: { name: fcName, response: { status: resultStatus } } });
+        } else if (GITHUB_READ_TOOL_NAMES.includes(fcName) && githubCtx) {
+          const toolResult = await executeGithubReadTool(fcName, args, githubCtx.token, githubCtx.login);
+          responseParts.push({ functionResponse: { name: fcName, response: toolResult } });
+        } else {
+          responseParts.push({ functionResponse: { name: fcName, response: { error: 'Tool not available.' } } });
+        }
+      }
+      requestBody.contents.push({ role: 'model', parts: candidateParts });
+      requestBody.contents.push({ role: 'user', parts: responseParts });
+      continue;
+    }
+
+    if (!textPart || !textPart.text) return { status: 'error', error: new Error('Empty response from model') };
+    finalText = textPart.text;
+  }
+  if (finalText === null) return { status: 'error', error: new Error('Tool loop exceeded safety limit') };
+  return { status: 'done', finalText };
+}
+
+// Resumes a paused tool loop after the user confirms or cancels a write action.
+// `approved` = true executes the write via GitHub API; false reports the denial to Gemini.
+async function resumeGeminiToolLoop(pending, approved) {
+  const { requestBody, keyObj, enableMemoryTool, githubCtx, candidateParts, functionCalls, writeCallName, writeCallArgs } = pending;
+
+  const responseParts = [];
+  for (const fc of functionCalls) {
+    const fcName = fc.functionCall.name;
+    const args = fc.functionCall.args || {};
+    if (fcName === writeCallName) {
+      if (approved) {
+        const toolResult = await executeGithubWriteTool(fcName, args, githubCtx.token, githubCtx.login);
+        responseParts.push({ functionResponse: { name: fcName, response: toolResult } });
+      } else {
+        responseParts.push({ functionResponse: { name: fcName, response: { error: 'User declined this action. Do not retry it unless the user asks again.' } } });
+      }
+    } else if (fcName === 'remember_user_info' && enableMemoryTool) {
+      const fact = typeof args.fact === 'string' ? args.fact : null;
+      const category = typeof args.category === 'string' ? args.category : 'interest';
+      const resultStatus = fact ? await addMemoryFact(category, fact) : 'skipped';
+      responseParts.push({ functionResponse: { name: fcName, response: { status: resultStatus } } });
+    } else if (GITHUB_READ_TOOL_NAMES.includes(fcName) && githubCtx) {
+      const toolResult = await executeGithubReadTool(fcName, args, githubCtx.token, githubCtx.login);
+      responseParts.push({ functionResponse: { name: fcName, response: toolResult } });
+    } else {
+      responseParts.push({ functionResponse: { name: fcName, response: { error: 'Tool not available.' } } });
+    }
+  }
+  requestBody.contents.push({ role: 'model', parts: candidateParts });
+  requestBody.contents.push({ role: 'user', parts: responseParts });
+
+  const result = await runGeminiToolLoop(requestBody, keyObj, enableMemoryTool, githubCtx);
+  if (result.status === 'pending_confirmation') return { pendingConfirmation: result.pendingConfirmation };
+  if (result.status === 'error' || result.status === 'key_exhausted') throw result.error || new Error('Request failed after confirmation');
+  return result.finalText;
+}
+
+function buildSystemPrompt(githubLogin) {
   const facts = userMemory && Array.isArray(userMemory.facts) ? userMemory.facts : [];
 
   const knownFactsSection = facts.length > 0
@@ -1704,7 +2029,15 @@ Memory usage rules:
 - If the user replies with something like "lanjut", "lanjutin", "iya lanjut", "yang tadi", "continue" — pick up the most recent relevant thread from memory/conversation and continue naturally without asking them to repeat context they've already given before.
 - If you have no memory yet and the user just says "halo"/"hi", reply normally and briefly like a plain assistant greeting — do NOT invent interests or offer fake "continue X or Y" options.`;
 
-  return SYSTEM_PROMPT + memoryBlock;
+  const githubBlock = githubLogin ? `
+
+The user has connected their GitHub account (username: ${githubLogin}). You have tools to interact with their repos:
+- github_list_repos, github_list_files, github_read_file — read-only, use freely whenever relevant.
+- github_write_file, github_delete_file — these make real changes and will always be shown to the user as a confirmation prompt before anything happens; you don't need to ask for permission in chat first, just call the tool and the UI handles confirmation. Still, be precise: read the current file first with github_read_file before editing it (unless creating a brand-new file), and write a clear, accurate commitMessage.
+- Never guess repo or file names — use github_list_repos / github_list_files first if you're not sure what exists.
+- Assume the repo owner is the connected user unless they clearly mean another org/user.` : '';
+
+  return SYSTEM_PROMPT + memoryBlock + githubBlock;
 }
 
 const VALID_MEMORY_CATEGORIES = ['project', 'tech_stack', 'skill_level', 'preference', 'interest'];
@@ -2112,6 +2445,8 @@ function handleChatMenuDelete() {
   }
 }
 
+let pendingGithubConfirmation = null; // { pending, chatId, isNewChat, trimmed }
+
 async function handleSend() {
   const textarea = document.getElementById('inputTextarea');
   const trimmed = textarea.value.trim();
@@ -2140,36 +2475,19 @@ async function handleSend() {
   }
 
   try {
-    const replyText = await callGeminiWithRotation(messages, handleKeyUsage, null, { enableMemoryTool: true });
-    const assistantMessage = { role: 'assistant', content: replyText };
-    messages = [...messages, assistantMessage];
-    isLoading = false;
-    renderMessages();
+    const githubData = await loadGithubConnector();
+    const githubCtx = (githubData && githubData.login && githubData.token) ? { token: githubData.token, login: githubData.login } : null;
+    const result = await callGeminiWithRotation(messages, handleKeyUsage, buildSystemPrompt(githubCtx ? githubCtx.login : null), { enableMemoryTool: true, githubCtx });
 
-    if (isTemporaryChat) {
-      // Temporary chat: never persisted to chat list or storage.
+    if (result && typeof result === 'object' && result.pendingConfirmation) {
+      isLoading = false;
+      pendingGithubConfirmation = { pending: result.pendingConfirmation, chatId, isNewChat, trimmed };
+      showGithubConfirmSheet(result.pendingConfirmation);
+      renderMessages();
       return;
     }
 
-    let title;
-    if (isNewChat) {
-      title = await generateChatTitle(trimmed, replyText);
-      chatList = [{ id: chatId, title, updatedAt: Date.now() }, ...chatList];
-      await saveChatList(chatList);
-      renderChatHistoryList();
-    } else {
-      chatList = chatList.map(c => c.id === chatId ? { ...c, updatedAt: Date.now() } : c);
-      chatList.sort((a, b) => b.updatedAt - a.updatedAt);
-      await saveChatList(chatList);
-      renderChatHistoryList();
-    }
-
-    await saveChat(chatId, {
-      messages,
-      title: title || (chatList.find(c => c.id === chatId) || {}).title,
-      updatedAt: Date.now()
-    });
-
+    await finishAssistantTurn(result, chatId, isNewChat, trimmed);
   } catch (err) {
     console.error(err);
     isLoading = false;
@@ -2180,6 +2498,63 @@ async function handleSend() {
     } else {
       showError(t('error.modelUnreachable'));
     }
+    renderMessages();
+  }
+}
+
+async function finishAssistantTurn(replyText, chatId, isNewChat, trimmed) {
+  const assistantMessage = { role: 'assistant', content: replyText };
+  messages = [...messages, assistantMessage];
+  isLoading = false;
+  renderMessages();
+
+  if (isTemporaryChat) {
+    // Temporary chat: never persisted to chat list or storage.
+    return;
+  }
+
+  let title;
+  if (isNewChat) {
+    title = await generateChatTitle(trimmed, replyText);
+    chatList = [{ id: chatId, title, updatedAt: Date.now() }, ...chatList];
+    await saveChatList(chatList);
+    renderChatHistoryList();
+  } else {
+    chatList = chatList.map(c => c.id === chatId ? { ...c, updatedAt: Date.now() } : c);
+    chatList.sort((a, b) => b.updatedAt - a.updatedAt);
+    await saveChatList(chatList);
+    renderChatHistoryList();
+  }
+
+  await saveChat(chatId, {
+    messages,
+    title: title || (chatList.find(c => c.id === chatId) || {}).title,
+    updatedAt: Date.now()
+  });
+}
+
+async function handleGithubConfirmationDecision(approved) {
+  if (!pendingGithubConfirmation) return;
+  const { pending, chatId, isNewChat, trimmed } = pendingGithubConfirmation;
+  pendingGithubConfirmation = null;
+  hideGithubConfirmSheet();
+  isLoading = true;
+  renderMessages();
+
+  try {
+    const result = await resumeGeminiToolLoop(pending, approved);
+    if (result && typeof result === 'object' && result.pendingConfirmation) {
+      isLoading = false;
+      pendingGithubConfirmation = { pending: result.pendingConfirmation, chatId, isNewChat, trimmed };
+      showGithubConfirmSheet(result.pendingConfirmation);
+      renderMessages();
+      return;
+    }
+    await finishAssistantTurn(result, chatId, isNewChat, trimmed);
+  } catch (err) {
+    console.error(err);
+    isLoading = false;
+    showError(t('error.modelUnreachable'));
     renderMessages();
   }
 }
@@ -2610,6 +2985,8 @@ document.getElementById('githubDisconnectBtn').addEventListener('click', handleG
 document.getElementById('githubTokenInput').addEventListener('keydown', (e) => {
   if (e.key === 'Enter') handleGithubConnect();
 });
+document.getElementById('ghConfirmOkBtn').addEventListener('click', () => handleGithubConfirmationDecision(true));
+document.getElementById('ghConfirmCancelBtn').addEventListener('click', () => handleGithubConfirmationDecision(false));
 document.getElementById('modelPillBtn').addEventListener('click', openModelSheet);
 document.getElementById('closeModelSheetBtn').addEventListener('click', closeModelSheet);
 document.getElementById('modelSheetOverlay').addEventListener('click', (e) => {
