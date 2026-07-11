@@ -588,6 +588,47 @@
   .settings-row-danger .settings-row-title { color: #c0392b; }
   .settings-row-icon-danger { color: #c0392b; background: rgba(192, 57, 43, 0.1); }
 
+  /* Connectors page */
+  .connector-card {
+    border: 1px solid var(--border); background: #fff; border-radius: 14px;
+    padding: 16px 14px; display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px;
+  }
+  .connector-card-header { display: flex; align-items: center; gap: 12px; }
+  .connector-card-icon {
+    width: 34px; height: 34px; border-radius: 50%; background: var(--cream-dark);
+    display: flex; align-items: center; justify-content: center; color: var(--ink); flex-shrink: 0;
+  }
+  .connector-card-title { font-size: 15px; font-weight: 700; color: var(--ink); }
+  .connector-card-sub { font-size: 12.5px; color: var(--ink-soft); margin-top: 1px; }
+  .connector-status-badge {
+    margin-left: auto; font-size: 11.5px; font-weight: 600; padding: 4px 9px; border-radius: 999px;
+    background: rgba(39, 174, 96, 0.12); color: #1e8449; flex-shrink: 0;
+  }
+  .connector-card-desc { font-size: 13px; color: var(--ink-soft); line-height: 1.5; }
+  .connector-card-desc a { color: inherit; text-decoration: underline; }
+  .connector-form { display: flex; flex-direction: column; gap: 8px; margin-top: 2px; }
+  .connector-input {
+    width: 100%; border: 1px solid var(--border); border-radius: 10px; padding: 11px 12px;
+    font-size: 13.5px; font-family: inherit; background: var(--cream); color: var(--ink);
+  }
+  .connector-input:focus { outline: none; border-color: var(--ink-soft); }
+  .connector-btn-row { display: flex; gap: 8px; }
+  .connector-btn {
+    flex: 1; border: none; border-radius: 10px; padding: 11px 12px; font-size: 13.5px;
+    font-weight: 600; cursor: pointer; font-family: inherit;
+  }
+  .connector-btn-primary { background: var(--ink); color: #fff; }
+  .connector-btn-primary:disabled { opacity: 0.5; cursor: default; }
+  .connector-btn-danger { background: rgba(192, 57, 43, 0.1); color: #c0392b; }
+  .connector-connected-row {
+    display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+    background: var(--cream); border-radius: 10px;
+  }
+  .connector-connected-avatar { width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; }
+  .connector-connected-name { font-size: 13.5px; font-weight: 600; color: var(--ink); flex: 1; min-width: 0; }
+  .connector-error-text { font-size: 12.5px; color: #c0392b; display: none; }
+  .connector-error-text.visible { display: block; }
+
   .language-page-list { display: flex; flex-direction: column; gap: 8px; }
   .language-page-item {
     display: flex; justify-content: space-between; align-items: center;
@@ -912,6 +953,50 @@
     </div>
   </div>
 
+  <div class="fullscreen-page" id="connectorsPage">
+    <div class="fullscreen-page-header">
+      <button class="fullscreen-page-back" id="closeConnectorsPageBtn" aria-label="Back">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <span class="fullscreen-page-title" data-i18n="attach.connectors">Connectors</span>
+    </div>
+    <div class="fullscreen-page-body">
+      <div class="connector-card">
+        <div class="connector-card-header">
+          <div class="connector-card-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.69-1.28-1.69-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.03 1.75 2.7 1.25 3.36.96.1-.75.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.15 1.18a10.9 10.9 0 0 1 5.74 0c2.19-1.49 3.15-1.18 3.15-1.18.62 1.58.23 2.75.11 3.04.74.8 1.18 1.83 1.18 3.09 0 4.41-2.7 5.38-5.27 5.67.42.36.78 1.07.78 2.15 0 1.56-.01 2.81-.01 3.19 0 .31.21.67.8.56A10.51 10.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
+          </div>
+          <div>
+            <div class="connector-card-title">GitHub</div>
+            <div class="connector-card-sub" data-i18n="connectors.githubSub">Baca repo &amp; file</div>
+          </div>
+          <span class="connector-status-badge" id="githubConnectedBadge" style="display:none;" data-i18n="connectors.connected">Connected</span>
+        </div>
+
+        <div id="githubDisconnectedView">
+          <div class="connector-card-desc" id="githubDesc"></div>
+          <div class="connector-form">
+            <input type="password" class="connector-input" id="githubTokenInput" data-i18n-placeholder="connectors.tokenPlaceholder" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off" autocapitalize="off" spellcheck="false">
+            <span class="connector-error-text" id="githubTokenError"></span>
+            <div class="connector-btn-row">
+              <button class="connector-btn connector-btn-primary" id="githubConnectBtn" data-i18n="connectors.connect">Connect</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="githubConnectedView" style="display:none;">
+          <div class="connector-connected-row">
+            <img class="connector-connected-avatar" id="githubAvatar" src="" alt="">
+            <span class="connector-connected-name" id="githubUsername"></span>
+          </div>
+          <div class="connector-btn-row" style="margin-top:10px;">
+            <button class="connector-btn connector-btn-danger" id="githubDisconnectBtn" data-i18n="connectors.disconnect">Disconnect</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <input type="file" accept="image/*" capture="environment" class="attach-file-input" id="attachCameraInput">
   <input type="file" accept="image/*" multiple class="attach-file-input" id="attachPhotoInput">
   <input type="file" class="attach-file-input" id="attachFileInput">
@@ -1014,6 +1099,16 @@ const I18N_STRINGS = {
     'attach.toolAccess': 'Tool access',
     'attach.auto': 'Auto',
     'attach.connectors': 'Connectors',
+    'connectors.githubSub': 'Read repos & files',
+    'connectors.connected': 'Connected',
+    'connectors.connect': 'Connect',
+    'connectors.disconnect': 'Disconnect',
+    'connectors.githubDesc': 'Connect your GitHub account with a Personal Access Token so Codspire can read your repos and files. Create a new token at <a href="https://github.com/settings/tokens/new" target="_blank" rel="noopener">github.com/settings/tokens</a> with the <strong>repo</strong> scope (read-only is enough), then paste it below.',
+    'connectors.tokenPlaceholder': 'ghp_xxxxxxxxxxxxxxxxxxxx',
+    'connectors.invalidToken': 'Invalid token, or it doesn\u2019t have access to any repos. Check the token and its scope.',
+    'connectors.connectFailed': 'Couldn\u2019t connect to GitHub. Please try again.',
+    'connectors.connecting': 'Connecting\u2026',
+    'connectors.disconnectConfirm': 'Disconnect your GitHub account?',
     'settings.title': 'Settings',
     'settings.selectLanguage': 'Select language',
     'settings.langEnglish': 'English',
@@ -1084,6 +1179,16 @@ const I18N_STRINGS = {
     'attach.toolAccess': 'Akses alat',
     'attach.auto': 'Otomatis',
     'attach.connectors': 'Konektor',
+    'connectors.githubSub': 'Baca repo & file',
+    'connectors.connected': 'Terhubung',
+    'connectors.connect': 'Hubungkan',
+    'connectors.disconnect': 'Putuskan',
+    'connectors.githubDesc': 'Hubungkan akun GitHub kamu pakai Personal Access Token supaya Codspire bisa membaca repo dan file kamu. Buat token baru di <a href="https://github.com/settings/tokens/new" target="_blank" rel="noopener">github.com/settings/tokens</a> dengan scope <strong>repo</strong> (read-only cukup), lalu tempel di bawah ini.',
+    'connectors.tokenPlaceholder': 'ghp_xxxxxxxxxxxxxxxxxxxx',
+    'connectors.invalidToken': 'Token tidak valid, atau tidak punya akses ke repo manapun. Cek lagi token dan scope-nya.',
+    'connectors.connectFailed': 'Gagal terhubung ke GitHub. Coba lagi.',
+    'connectors.connecting': 'Menghubungkan\u2026',
+    'connectors.disconnectConfirm': 'Putuskan koneksi akun GitHub kamu?',
     'settings.title': 'Pengaturan',
     'settings.selectLanguage': 'Pilih bahasa',
     'settings.langEnglish': 'English',
@@ -1139,6 +1244,9 @@ function applyTranslations() {
 
   const sub = document.getElementById('settingsLanguageSub');
   if (sub) sub.textContent = currentLang === 'id' ? t('settings.langIndonesian') : t('settings.langEnglish');
+
+  const githubDescEl = document.getElementById('githubDesc');
+  if (githubDescEl) githubDescEl.innerHTML = t('connectors.githubDesc');
 
   const enOpt = document.getElementById('languageOptionEn');
   const idOpt = document.getElementById('languageOptionId');
@@ -1197,6 +1305,115 @@ function lsDelete(key) {
 
 function usingFirestore() {
   return window.__codspireAuthMode === 'firebase' && !!currentUser && !!window.__codspireFirebase;
+}
+
+// ---- GitHub connector (Personal Access Token, stored per-user in Firestore) ----
+async function loadGithubConnector() {
+  if (usingFirestore()) {
+    try {
+      const { db, fsMod } = window.__codspireFirebase;
+      const ref = fsMod.doc(db, 'users', currentUser.uid, 'connectors', 'github');
+      const snap = await fsMod.getDoc(ref);
+      return snap.exists() ? snap.data() : null;
+    } catch (err) {
+      console.error('Firestore loadGithubConnector failed', err);
+      return null;
+    }
+  }
+  try {
+    const raw = lsGet('codspire:connector-github');
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+async function saveGithubConnector(data) {
+  if (usingFirestore()) {
+    const { db, fsMod } = window.__codspireFirebase;
+    const ref = fsMod.doc(db, 'users', currentUser.uid, 'connectors', 'github');
+    await fsMod.setDoc(ref, data);
+    return;
+  }
+  lsSet('codspire:connector-github', JSON.stringify(data));
+}
+async function deleteGithubConnector() {
+  if (usingFirestore()) {
+    const { db, fsMod } = window.__codspireFirebase;
+    const ref = fsMod.doc(db, 'users', currentUser.uid, 'connectors', 'github');
+    await fsMod.deleteDoc(ref);
+    return;
+  }
+  lsSet('codspire:connector-github', '');
+}
+
+async function refreshGithubConnectorUI() {
+  const disconnectedView = document.getElementById('githubDisconnectedView');
+  const connectedView = document.getElementById('githubConnectedView');
+  const badge = document.getElementById('githubConnectedBadge');
+  const errorEl = document.getElementById('githubTokenError');
+  errorEl.classList.remove('visible');
+  errorEl.textContent = '';
+
+  const data = await loadGithubConnector();
+  if (data && data.login) {
+    disconnectedView.style.display = 'none';
+    connectedView.style.display = '';
+    badge.style.display = '';
+    document.getElementById('githubAvatar').src = data.avatarUrl || '';
+    document.getElementById('githubUsername').textContent = '@' + data.login;
+  } else {
+    disconnectedView.style.display = '';
+    connectedView.style.display = 'none';
+    badge.style.display = 'none';
+    document.getElementById('githubTokenInput').value = '';
+  }
+}
+
+async function handleGithubConnect() {
+  const input = document.getElementById('githubTokenInput');
+  const btn = document.getElementById('githubConnectBtn');
+  const errorEl = document.getElementById('githubTokenError');
+  const token = input.value.trim();
+  errorEl.classList.remove('visible');
+  errorEl.textContent = '';
+  if (!token) return;
+
+  btn.disabled = true;
+  const originalLabel = btn.textContent;
+  btn.textContent = t('connectors.connecting');
+
+  try {
+    const res = await fetch('https://api.github.com/user', {
+      headers: {
+        'Authorization': 'Bearer ' + token,
+        'Accept': 'application/vnd.github+json'
+      }
+    });
+    if (!res.ok) {
+      errorEl.textContent = t('connectors.invalidToken');
+      errorEl.classList.add('visible');
+      return;
+    }
+    const profile = await res.json();
+    await saveGithubConnector({
+      login: profile.login,
+      avatarUrl: profile.avatar_url || '',
+      token: token,
+      connectedAt: Date.now()
+    });
+    await refreshGithubConnectorUI();
+  } catch (err) {
+    console.error('GitHub connect failed', err);
+    errorEl.textContent = t('connectors.connectFailed');
+    errorEl.classList.add('visible');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalLabel;
+  }
+}
+
+async function handleGithubDisconnect() {
+  if (!confirm(t('connectors.disconnectConfirm'))) return;
+  await deleteGithubConnector();
+  await refreshGithubConnectorUI();
 }
 
 // ---- API keys (shared collection, admin-write-only via security rules) ----
@@ -2146,6 +2363,8 @@ function openSettingsSheet() { openFullscreenPage('settingsPage'); }
 function closeSettingsSheet() { closeFullscreenPage('settingsPage'); }
 function openLanguageSheet() { openFullscreenPage('languagePage'); }
 function closeLanguageSheet() { closeFullscreenPage('languagePage'); }
+function openConnectorsSheet() { openFullscreenPage('connectorsPage'); refreshGithubConnectorUI(); }
+function closeConnectorsSheet() { closeFullscreenPage('connectorsPage'); }
 function openAttachSheet() {
   const sheet = document.getElementById('attachSheet');
   const overlay = document.getElementById('attachSheetOverlay');
@@ -2382,7 +2601,14 @@ document.getElementById('attachOptionToolAccess').addEventListener('click', () =
   // Placeholder — tool access sub-menu not implemented yet.
 });
 document.getElementById('attachOptionConnectors').addEventListener('click', () => {
-  // Placeholder — connectors sub-menu not implemented yet.
+  closeAttachSheet();
+  openConnectorsSheet();
+});
+document.getElementById('closeConnectorsPageBtn').addEventListener('click', closeConnectorsSheet);
+document.getElementById('githubConnectBtn').addEventListener('click', handleGithubConnect);
+document.getElementById('githubDisconnectBtn').addEventListener('click', handleGithubDisconnect);
+document.getElementById('githubTokenInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') handleGithubConnect();
 });
 document.getElementById('modelPillBtn').addEventListener('click', openModelSheet);
 document.getElementById('closeModelSheetBtn').addEventListener('click', closeModelSheet);
