@@ -448,10 +448,83 @@
   .model-sheet-item-desc { font-size: 12.5px; color: var(--ink-soft); line-height: 1.4; }
   .model-sheet-check { color: var(--terracotta); font-size: 16px; font-weight: 700; }
 
+  .attach-sheet-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+    margin-bottom: 6px;
+  }
+  .attach-sheet-tile {
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    padding: 16px 8px; border-radius: 14px; cursor: pointer;
+    background: var(--cream-dark); border: 1px solid transparent;
+  }
+  .attach-sheet-tile:hover { background: var(--cream-darker); }
+  .attach-sheet-tile:active { border-color: var(--border); }
+  .attach-sheet-icon-circle {
+    width: 44px; height: 44px; border-radius: 50%; background: var(--cream-darker);
+    display: flex; align-items: center; justify-content: center; color: var(--ink);
+    flex-shrink: 0;
+  }
+  .attach-sheet-tile-label { font-size: 13px; font-weight: 600; color: var(--ink); }
+  .attach-sheet-divider { height: 1px; background: var(--border); margin: 4px 0 10px 0; }
+  .attach-sheet-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 4px; cursor: pointer;
+  }
+  .attach-sheet-row-icon {
+    width: 38px; height: 38px; border-radius: 50%; background: var(--cream-darker);
+    display: flex; align-items: center; justify-content: center; color: var(--ink);
+    flex-shrink: 0;
+  }
+  .attach-sheet-row-text { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+  .attach-sheet-row-title { font-size: 15px; font-weight: 600; color: var(--ink); }
+  .attach-sheet-row-sub { font-size: 12.5px; color: var(--ink-soft); }
+  .attach-sheet-toggle {
+    position: relative; width: 42px; height: 24px; border-radius: 12px;
+    background: var(--border); flex-shrink: 0; cursor: pointer; transition: background 0.2s ease;
+  }
+  .attach-sheet-toggle.on { background: var(--terracotta); }
+  .attach-sheet-toggle-knob {
+    position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; border-radius: 50%;
+    background: #fff; transition: transform 0.2s ease; box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  }
+  .attach-sheet-toggle.on .attach-sheet-toggle-knob { transform: translateX(18px); }
+  .attach-sheet-row-chevron { color: var(--ink-soft); font-size: 15px; }
+  .attach-file-input { display: none; }
+
   .empty-state-incognito-text {
     font-size: 15px; color: var(--ink-soft); line-height: 1.65;
     max-width: 340px; text-align: center;
   }
+
+  .sidebar-user-footer { cursor: pointer; }
+  .sidebar-user-footer:active { background: var(--cream-darker); border-radius: 10px; }
+
+  .settings-list { display: flex; flex-direction: column; gap: 2px; padding-bottom: 4px; }
+  .settings-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 13px 8px; cursor: pointer; border-radius: 12px; border: none;
+    background: none; width: 100%; text-align: left;
+  }
+  .settings-row:hover { background: var(--cream-darker); }
+  .settings-row-icon {
+    width: 34px; height: 34px; border-radius: 50%; background: var(--cream-darker);
+    display: flex; align-items: center; justify-content: center; color: var(--ink);
+    flex-shrink: 0;
+  }
+  .settings-row-text { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+  .settings-row-title { font-size: 15px; font-weight: 600; color: var(--ink); }
+  .settings-row-sub { font-size: 12.5px; color: var(--ink-soft); }
+  .settings-row-chevron { color: var(--ink-soft); font-size: 15px; flex-shrink: 0; }
+
+  .language-sheet-list { display: flex; flex-direction: column; gap: 4px; }
+  .language-sheet-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 12px; border-radius: 12px; cursor: pointer;
+  }
+  .language-sheet-item:hover { background: var(--cream-darker); }
+  .language-sheet-item-name { font-size: 15px; font-weight: 600; color: var(--ink); }
+  .language-sheet-check { color: var(--terracotta); font-size: 16px; font-weight: 700; visibility: hidden; }
+  .language-sheet-item.active .language-sheet-check { visibility: visible; }
 </style>
 
 </head>
@@ -464,7 +537,7 @@
 
   <div class="login-screen" id="loginScreen">
     <div class="login-logo">Codspire</div>
-    <div class="login-subtitle">Masuk untuk melanjutkan ke Codspire, AI pair programmer kamu.</div>
+    <div class="login-subtitle" data-i18n="login.subtitle">Sign in to continue to Codspire, your AI pair programmer.</div>
     <button class="login-google-btn" id="loginGoogleBtn">
       <svg width="18" height="18" viewBox="0 0 24 24">
         <path fill="#4285F4" d="M23.52 12.27c0-.82-.07-1.6-.2-2.36H12v4.47h6.47c-.28 1.5-1.13 2.77-2.4 3.62v3h3.88c2.27-2.09 3.57-5.17 3.57-8.73z"/>
@@ -472,7 +545,7 @@
         <path fill="#FBBC05" d="M5.27 14.29c-.25-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29v-3.1H1.26A11.96 11.96 0 0 0 0 12c0 1.93.46 3.76 1.26 5.39l4.01-3.1z"/>
         <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.44-3.44C17.95 1.19 15.24 0 12 0 7.28 0 3.24 2.7 1.26 6.61l4.01 3.1C6.22 6.86 8.87 4.75 12 4.75z"/>
       </svg>
-      <span id="loginGoogleBtnLabel">Masuk dengan Google</span>
+      <span id="loginGoogleBtnLabel" data-i18n="login.googleBtn">Sign in with Google</span>
       <span class="login-loading-spinner" id="loginSpinner"></span>
     </button>
     <div class="login-error" id="loginError"></div>
@@ -488,9 +561,9 @@
       <span class="sidebar-logo">Codspire</span>
       <button class="icon-button" id="closeSidebarBtn" aria-label="Close sidebar">✕</button>
     </div>
-    <button class="new-chat-button" id="newChatBtn">+ New chat</button>
+    <button class="new-chat-button" id="newChatBtn" data-i18n="sidebar.newChat">+ New chat</button>
     <div class="chat-history-list" id="chatHistoryList"></div>
-    <button class="admin-button" id="openAdminBtn" style="display:none;">⚙ Admin panel</button>
+    <button class="admin-button" id="openAdminBtn" style="display:none;" data-i18n="sidebar.adminPanel">⚙ Admin panel</button>
     <div class="sidebar-user-footer" id="sidebarUserFooter" style="display:none;">
       <img class="sidebar-user-avatar" id="sidebarUserAvatar" alt="">
       <div class="sidebar-user-info">
@@ -528,31 +601,31 @@
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M8.7 10.7L15.3 7.4M8.7 13.3L15.3 16.6M18 6a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM6 14.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM18 23a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
-          <span>Share</span>
+          <span data-i18n="menu.share">Share</span>
         </button>
         <button class="top-bar-menu-item" id="chatMenuRenameBtn">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
-          <span>Rename</span>
+          <span data-i18n="menu.rename">Rename</span>
         </button>
         <button class="top-bar-menu-item top-bar-menu-item-danger" id="chatMenuDeleteBtn">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m2 0v13a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V7h10zM10 11v6M14 11v6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
-          <span>Delete</span>
+          <span data-i18n="menu.delete">Delete</span>
         </button>
       </div>
     </div>
 
     <div class="error-banner" id="errorBanner">
       <span id="errorBannerText"></span>
-      <button class="error-banner-link" id="errorBannerLink">Open admin panel</button>
+      <button class="error-banner-link" id="errorBannerLink" data-i18n="banner.openAdmin">Open admin panel</button>
     </div>
 
     <div class="empty-state" id="emptyState">
       <div class="empty-state-title" id="emptyStateTitle">Codspire</div>
-      <div class="empty-state-subtitle" id="emptyStateSubtitle">Your AI pair programmer. Ask anything about code.</div>
+      <div class="empty-state-subtitle" id="emptyStateSubtitle" data-i18n="empty.subtitle">Your AI pair programmer. Ask anything about code.</div>
     </div>
 
     <div class="messages-container" id="messagesContainer" style="display:none;"></div>
@@ -576,14 +649,14 @@
   <div class="admin-overlay" id="adminOverlay">
     <div class="admin-panel">
       <div class="admin-header">
-        <span class="admin-title">Admin panel</span>
+        <span class="admin-title" data-i18n="admin.title">Admin panel</span>
         <button class="icon-button" id="closeAdminBtn" aria-label="Close admin panel">✕</button>
       </div>
-      <p class="admin-note">Keys added here are shared across everyone using this app. When a key runs out of quota, Codspire automatically switches to the next active key.</p>
+      <p class="admin-note" data-i18n="admin.note">Keys added here are shared across everyone using this app. When a key runs out of quota, Codspire automatically switches to the next active key.</p>
       <div class="admin-add-form">
-        <input class="admin-input" id="newKeyLabel" placeholder="Key label (optional, e.g. 'Personal key 1')">
-        <input class="admin-input" id="newKeyValue" placeholder="Paste Gemini API key here" type="password">
-        <button class="admin-add-button" id="addKeyBtn">Add key</button>
+        <input class="admin-input" id="newKeyLabel" data-i18n-placeholder="admin.keyLabelPlaceholder" placeholder="Key label (optional, e.g. 'Personal key 1')">
+        <input class="admin-input" id="newKeyValue" data-i18n-placeholder="admin.keyValuePlaceholder" placeholder="Paste Gemini API key here" type="password">
+        <button class="admin-add-button" id="addKeyBtn" data-i18n="admin.addKey">Add key</button>
       </div>
       <div class="admin-key-list" id="adminKeyList"></div>
     </div>
@@ -593,20 +666,155 @@
     <div class="model-sheet" id="modelSheet">
       <div class="model-sheet-handle" id="modelSheetHandle"></div>
       <div class="model-sheet-header" id="modelSheetHeaderDrag">
-        <span class="model-sheet-title">Pilih model</span>
+        <span class="model-sheet-title" data-i18n="model.pickModel">Choose model</span>
         <button class="icon-button" id="closeModelSheetBtn" aria-label="Close model picker">✕</button>
       </div>
       <div class="model-sheet-list">
         <div class="model-sheet-item active" id="modelOptionSinux">
           <div class="model-sheet-item-text">
             <span class="model-sheet-item-name">Codspire Sinux 1.0</span>
-            <span class="model-sheet-item-desc">Model utama Codspire untuk bantuan coding sehari-hari.</span>
+            <span class="model-sheet-item-desc" data-i18n="model.sinuxDesc">Codspire's main model for everyday coding help.</span>
           </div>
           <span class="model-sheet-check">✓</span>
         </div>
       </div>
     </div>
   </div>
+
+  <div class="model-sheet-overlay" id="attachSheetOverlay">
+    <div class="model-sheet" id="attachSheet">
+      <div class="model-sheet-handle" id="attachSheetHandle"></div>
+      <div class="model-sheet-header" id="attachSheetHeaderDrag">
+        <span class="model-sheet-title" data-i18n="attach.title">Add to chat</span>
+        <button class="icon-button" id="closeAttachSheetBtn" aria-label="Close attach menu">✕</button>
+      </div>
+
+      <div class="attach-sheet-grid">
+        <div class="attach-sheet-tile" id="attachOptionCamera">
+          <div class="attach-sheet-icon-circle">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M4 8a2 2 0 0 1 2-2h1.5l1-1.6A1.6 1.6 0 0 1 9.86 3.6h4.28a1.6 1.6 0 0 1 1.36.8L16.5 6H18a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+              <circle cx="12" cy="13" r="3.4" stroke="currentColor" stroke-width="1.6"/>
+            </svg>
+          </div>
+          <span class="attach-sheet-tile-label" data-i18n="attach.camera">Camera</span>
+        </div>
+        <div class="attach-sheet-tile" id="attachOptionPhoto">
+          <div class="attach-sheet-icon-circle">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="3.5" y="4.5" width="17" height="15" rx="2" stroke="currentColor" stroke-width="1.6"/>
+              <circle cx="8.5" cy="9.5" r="1.5" stroke="currentColor" stroke-width="1.6"/>
+              <path d="M4.5 16.5l4.5-4.5a1.6 1.6 0 0 1 2.26 0l3.24 3.24m0 0l1.7-1.7a1.6 1.6 0 0 1 2.26 0l1.54 1.54" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <span class="attach-sheet-tile-label" data-i18n="attach.photo">Photo</span>
+        </div>
+        <div class="attach-sheet-tile" id="attachOptionFile">
+          <div class="attach-sheet-icon-circle">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M7 3.5h7.5L18.5 8v11a1.2 1.2 0 0 1-1.2 1.2H7A1.2 1.2 0 0 1 5.8 19V4.7A1.2 1.2 0 0 1 7 3.5z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+              <path d="M14 3.5V8h4.5" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+              <path d="M12 17.5v-6m0 0l-2.2 2.2M12 11.5l2.2 2.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <span class="attach-sheet-tile-label" data-i18n="attach.file">File</span>
+        </div>
+      </div>
+
+      <div class="attach-sheet-divider"></div>
+
+      <div class="attach-sheet-row" id="attachOptionWebSearchRow">
+        <div class="attach-sheet-row-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.6"/>
+            <path d="M3.5 12h17M12 3.5c2.2 2.3 3.3 5.2 3.3 8.5s-1.1 6.2-3.3 8.5c-2.2-2.3-3.3-5.2-3.3-8.5S9.8 5.8 12 3.5z" stroke="currentColor" stroke-width="1.6"/>
+          </svg>
+        </div>
+        <div class="attach-sheet-row-text">
+          <span class="attach-sheet-row-title" data-i18n="attach.webSearch">Web search</span>
+        </div>
+        <div class="attach-sheet-toggle on" id="attachWebSearchToggle">
+          <div class="attach-sheet-toggle-knob"></div>
+        </div>
+      </div>
+
+      <div class="attach-sheet-row" id="attachOptionToolAccess">
+        <div class="attach-sheet-row-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M8 8V6.5A2.5 2.5 0 0 1 10.5 4h3A2.5 2.5 0 0 1 16 6.5V8" stroke="currentColor" stroke-width="1.6"/>
+            <rect x="3.5" y="8" width="17" height="10.5" rx="2" stroke="currentColor" stroke-width="1.6"/>
+            <path d="M3.5 12.5h17" stroke="currentColor" stroke-width="1.6"/>
+          </svg>
+        </div>
+        <div class="attach-sheet-row-text">
+          <span class="attach-sheet-row-title" data-i18n="attach.toolAccess">Tool access</span>
+          <span class="attach-sheet-row-sub" data-i18n="attach.auto">Auto</span>
+        </div>
+        <span class="attach-sheet-row-chevron">›</span>
+      </div>
+
+      <div class="attach-sheet-row" id="attachOptionConnectors">
+        <div class="attach-sheet-row-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9.5 14.5l5-5m-4-2.3l.7-.7a3.3 3.3 0 0 1 4.7 4.7l-.7.7m-6.4 1.9l-.7.7a3.3 3.3 0 0 1-4.7-4.7l.7-.7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="attach-sheet-row-text">
+          <span class="attach-sheet-row-title" data-i18n="attach.connectors">Connectors</span>
+        </div>
+        <span class="attach-sheet-row-chevron">›</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="model-sheet-overlay" id="settingsSheetOverlay">
+    <div class="model-sheet" id="settingsSheet">
+      <div class="model-sheet-handle" id="settingsSheetHandle"></div>
+      <div class="model-sheet-header" id="settingsSheetHeaderDrag">
+        <span class="model-sheet-title" data-i18n="settings.title">Settings</span>
+        <button class="icon-button" id="closeSettingsSheetBtn" aria-label="Close settings">✕</button>
+      </div>
+      <div class="settings-list">
+        <button class="settings-row" id="settingsOptionLanguage">
+          <div class="settings-row-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.6"/>
+              <path d="M3.5 12h17M12 3.5c2.2 2.3 3.3 5.2 3.3 8.5s-1.1 6.2-3.3 8.5c-2.2-2.3-3.3-5.2-3.3-8.5S9.8 5.8 12 3.5z" stroke="currentColor" stroke-width="1.6"/>
+            </svg>
+          </div>
+          <div class="settings-row-text">
+            <span class="settings-row-title" data-i18n="settings.selectLanguage">Select language</span>
+            <span class="settings-row-sub" id="settingsLanguageSub">English</span>
+          </div>
+          <span class="settings-row-chevron">›</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="model-sheet-overlay" id="languageSheetOverlay">
+    <div class="model-sheet" id="languageSheet">
+      <div class="model-sheet-handle" id="languageSheetHandle"></div>
+      <div class="model-sheet-header" id="languageSheetHeaderDrag">
+        <span class="model-sheet-title" data-i18n="settings.selectLanguage">Select language</span>
+        <button class="icon-button" id="closeLanguageSheetBtn" aria-label="Close language picker">✕</button>
+      </div>
+      <div class="language-sheet-list">
+        <div class="language-sheet-item" id="languageOptionEn" data-lang="en">
+          <span class="language-sheet-item-name">English</span>
+          <span class="language-sheet-check">✓</span>
+        </div>
+        <div class="language-sheet-item" id="languageOptionId" data-lang="id">
+          <span class="language-sheet-item-name">Indonesia</span>
+          <span class="language-sheet-check">✓</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <input type="file" accept="image/*" capture="environment" class="attach-file-input" id="attachCameraInput">
+  <input type="file" accept="image/*" multiple class="attach-file-input" id="attachPhotoInput">
+  <input type="file" class="attach-file-input" id="attachFileInput">
 </div>
 
 
@@ -646,6 +854,198 @@ let isTemporaryChat = false;
 let isLoading = false;
 let userMemory = { facts: [] };
 let currentUser = null; // { uid, email, displayName, photoURL } once signed in (firebase mode only)
+
+// ============================================================
+// I18N (English / Indonesian)
+// ------------------------------------------------------------
+// Default language: whatever the user picked before (saved in
+// localStorage), else the browser/device language (Indonesian if
+// it starts with "id", otherwise English), else English.
+// ============================================================
+const I18N_STORAGE_KEY = 'codspire:lang';
+const I18N_STRINGS = {
+  en: {
+    'login.subtitle': 'Sign in to continue to Codspire, your AI pair programmer.',
+    'login.googleBtn': 'Sign in with Google',
+    'login.connecting': 'Connecting…',
+    'login.genericError': 'Failed to sign in with Google. Please try again.',
+    'login.unauthorizedDomain': 'This domain isn\u2019t authorized yet in Firebase Console (Authentication \u2192 Settings \u2192 Authorized domains).',
+    'login.popupBlocked': 'The browser blocked the popup. Allow popups for this site and try again.',
+    'login.popupClosed': 'The popup was closed before sign-in finished.',
+    'sidebar.newChat': '+ New chat',
+    'sidebar.adminPanel': '\u2699 Admin panel',
+    'sidebar.noConversations': 'No conversations yet.',
+    'sidebar.untitledChat': 'Untitled chat',
+    'sidebar.defaultUserName': 'User',
+    'menu.share': 'Share',
+    'menu.rename': 'Rename',
+    'menu.delete': 'Delete',
+    'menu.toggleTemporaryChat': 'Toggle temporary chat',
+    'menu.moreOptions': 'More options',
+    'banner.openAdmin': 'Open admin panel',
+    'empty.title': 'Codspire',
+    'empty.subtitle': 'Your AI pair programmer. Ask anything about code.',
+    'empty.incognitoText': 'This chat won\u2019t appear in your conversation history. Codspire still remembers context during this session, and the chat disappears once you switch or start a new one.',
+    'input.placeholderEmpty': 'Chat with Codspire\u2026',
+    'input.placeholderReply': 'Reply to Codspire\u2026',
+    'admin.title': 'Admin panel',
+    'admin.note': 'Keys added here are shared across everyone using this app. When a key runs out of quota, Codspire automatically switches to the next active key.',
+    'admin.keyLabelPlaceholder': 'Key label (optional, e.g. \u2018Personal key 1\u2019)',
+    'admin.keyValuePlaceholder': 'Paste Gemini API key here',
+    'admin.addKey': 'Add key',
+    'admin.noKeys': 'No API keys added yet.',
+    'admin.quotaExhausted': 'Quota exhausted',
+    'admin.active': 'Active',
+    'admin.reactivate': 'Reactivate',
+    'admin.remove': 'Remove',
+    'model.pickModel': 'Choose model',
+    'model.sinuxDesc': 'Codspire\u2019s main model for everyday coding help.',
+    'attach.title': 'Add to chat',
+    'attach.camera': 'Camera',
+    'attach.photo': 'Photo',
+    'attach.file': 'File',
+    'attach.webSearch': 'Web search',
+    'attach.toolAccess': 'Tool access',
+    'attach.auto': 'Auto',
+    'attach.connectors': 'Connectors',
+    'settings.title': 'Settings',
+    'settings.selectLanguage': 'Select language',
+    'settings.langEnglish': 'English',
+    'settings.langIndonesian': 'Indonesia',
+    'logout.confirm': 'Log out of this account?',
+    'error.noConversationToShare': 'No conversation to share yet.',
+    'error.exportFailed': 'Failed to export the conversation. Please try again.',
+    'error.noConversationToRename': 'No conversation to rename yet. Send a message first.',
+    'error.noConversationToDelete': 'No conversation to delete yet.',
+    'confirm.deleteChat': 'Delete this conversation? This can\u2019t be undone.',
+    'error.noApiKeys': 'No API keys configured yet. Open the admin panel to add one.',
+    'error.allKeysExhausted': 'All configured API keys are exhausted or invalid. Add a new key in the admin panel.',
+    'error.modelUnreachable': 'Something went wrong reaching the model. Please try again.',
+    'error.micDenied': 'Microphone access denied. Allow mic access in your browser settings to use voice input.',
+    'error.voiceGeneric': 'A voice input error occurred: ',
+    'error.noSpeechSupport': 'This browser doesn\u2019t support voice input (Speech Recognition) yet. Try Chrome.',
+    'export.exportedFrom': 'Exported from Codspire',
+    'export.defaultTitle': 'Codspire Chat',
+    'export.userLabel': 'User',
+  },
+  id: {
+    'login.subtitle': 'Masuk untuk melanjutkan ke Codspire, AI pair programmer kamu.',
+    'login.googleBtn': 'Masuk dengan Google',
+    'login.connecting': 'Menghubungkan\u2026',
+    'login.genericError': 'Gagal masuk dengan Google. Coba lagi.',
+    'login.unauthorizedDomain': 'Domain ini belum diizinkan di Firebase Console (Authentication \u2192 Settings \u2192 Authorized domains).',
+    'login.popupBlocked': 'Popup diblokir browser. Izinkan popup untuk situs ini lalu coba lagi.',
+    'login.popupClosed': 'Popup ditutup sebelum login selesai.',
+    'sidebar.newChat': '+ Chat baru',
+    'sidebar.adminPanel': '\u2699 Panel admin',
+    'sidebar.noConversations': 'Belum ada percakapan.',
+    'sidebar.untitledChat': 'Chat tanpa judul',
+    'sidebar.defaultUserName': 'Pengguna',
+    'menu.share': 'Bagikan',
+    'menu.rename': 'Ganti nama',
+    'menu.delete': 'Hapus',
+    'menu.toggleTemporaryChat': 'Aktifkan/nonaktifkan chat sementara',
+    'menu.moreOptions': 'Opsi lainnya',
+    'banner.openAdmin': 'Buka panel admin',
+    'empty.title': 'Codspire',
+    'empty.subtitle': 'AI pair programmer kamu. Tanyakan apa saja soal kode.',
+    'empty.incognitoText': 'Chat ini tidak akan muncul di riwayat percakapan kamu. Codspire tetap mengingat konteks selama sesi ini, dan chat akan hilang begitu kamu pindah atau memulai chat baru.',
+    'input.placeholderEmpty': 'Chat dengan Codspire\u2026',
+    'input.placeholderReply': 'Balas Codspire\u2026',
+    'admin.title': 'Panel admin',
+    'admin.note': 'Key yang ditambahkan di sini dipakai bersama oleh semua pengguna aplikasi ini. Kalau kuota sebuah key habis, Codspire otomatis pindah ke key aktif berikutnya.',
+    'admin.keyLabelPlaceholder': 'Label key (opsional, mis. \u2018Key pribadi 1\u2019)',
+    'admin.keyValuePlaceholder': 'Tempel API key Gemini di sini',
+    'admin.addKey': 'Tambah key',
+    'admin.noKeys': 'Belum ada API key yang ditambahkan.',
+    'admin.quotaExhausted': 'Kuota habis',
+    'admin.active': 'Aktif',
+    'admin.reactivate': 'Aktifkan lagi',
+    'admin.remove': 'Hapus',
+    'model.pickModel': 'Pilih model',
+    'model.sinuxDesc': 'Model utama Codspire untuk bantuan coding sehari-hari.',
+    'attach.title': 'Tambahkan ke chat',
+    'attach.camera': 'Kamera',
+    'attach.photo': 'Foto',
+    'attach.file': 'File',
+    'attach.webSearch': 'Pencarian web',
+    'attach.toolAccess': 'Akses alat',
+    'attach.auto': 'Otomatis',
+    'attach.connectors': 'Konektor',
+    'settings.title': 'Pengaturan',
+    'settings.selectLanguage': 'Pilih bahasa',
+    'settings.langEnglish': 'English',
+    'settings.langIndonesian': 'Indonesia',
+    'logout.confirm': 'Keluar dari akun ini?',
+    'error.noConversationToShare': 'Belum ada percakapan untuk dibagikan.',
+    'error.exportFailed': 'Gagal mengekspor percakapan. Coba lagi ya.',
+    'error.noConversationToRename': 'Belum ada percakapan untuk di-rename. Kirim pesan dulu ya.',
+    'error.noConversationToDelete': 'Belum ada percakapan untuk dihapus.',
+    'confirm.deleteChat': 'Hapus percakapan ini? Tindakan ini tidak bisa dibatalkan.',
+    'error.noApiKeys': 'Belum ada API key yang dikonfigurasi. Buka panel admin untuk menambahkannya.',
+    'error.allKeysExhausted': 'Semua API key yang dikonfigurasi sudah habis kuotanya atau tidak valid. Tambahkan key baru di panel admin.',
+    'error.modelUnreachable': 'Terjadi kesalahan saat menghubungi model. Coba lagi ya.',
+    'error.micDenied': 'Akses mikrofon ditolak. Izinkan akses mic di pengaturan browser untuk pakai voice input.',
+    'error.voiceGeneric': 'Terjadi kesalahan pada voice input: ',
+    'error.noSpeechSupport': 'Browser ini belum mendukung voice input (Speech Recognition). Coba pakai Chrome.',
+    'export.exportedFrom': 'Diekspor dari Codspire',
+    'export.defaultTitle': 'Codspire Chat',
+    'export.userLabel': 'User',
+  }
+};
+
+function detectDefaultLanguage() {
+  try {
+    const nav = (navigator.language || navigator.userLanguage || 'en').toLowerCase();
+    if (nav.startsWith('id')) return 'id';
+  } catch (err) {}
+  return 'en';
+}
+
+let currentLang = (() => {
+  try {
+    const saved = lsGet(I18N_STORAGE_KEY);
+    if (saved === 'en' || saved === 'id') return saved;
+  } catch (err) {}
+  return detectDefaultLanguage();
+})();
+
+function t(key) {
+  const dict = I18N_STRINGS[currentLang] || I18N_STRINGS.en;
+  return (dict && dict[key] !== undefined) ? dict[key] : (I18N_STRINGS.en[key] !== undefined ? I18N_STRINGS.en[key] : key);
+}
+
+function applyTranslations() {
+  document.documentElement.lang = currentLang;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    el.textContent = t(el.getAttribute('data-i18n'));
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    el.placeholder = t(el.getAttribute('data-i18n-placeholder'));
+  });
+
+  const sub = document.getElementById('settingsLanguageSub');
+  if (sub) sub.textContent = currentLang === 'id' ? t('settings.langIndonesian') : t('settings.langEnglish');
+
+  const enOpt = document.getElementById('languageOptionEn');
+  const idOpt = document.getElementById('languageOptionId');
+  if (enOpt) enOpt.classList.toggle('active', currentLang === 'en');
+  if (idOpt) idOpt.classList.toggle('active', currentLang === 'id');
+
+  // Re-render dynamic content that depends on language.
+  updatePlaceholder();
+  renderChatHistoryList();
+  renderAdminKeyList();
+  updateEmptyStateCopy();
+  updateTopBarMenuIcon();
+}
+
+function setLanguage(lang) {
+  if (lang !== 'en' && lang !== 'id') return;
+  currentLang = lang;
+  lsSet(I18N_STORAGE_KEY, lang);
+  applyTranslations();
+}
 
 // ============================================================
 // STORAGE HELPERS
@@ -1071,7 +1471,7 @@ function renderMessageContent(content) {
 
 function updatePlaceholder() {
   const textarea = document.getElementById('inputTextarea');
-  textarea.placeholder = messages.length === 0 ? 'Chat with Codspire…' : 'Reply to Codspire…';
+  textarea.placeholder = messages.length === 0 ? t('input.placeholderEmpty') : t('input.placeholderReply');
 }
 
 function renderMessages() {
@@ -1111,12 +1511,12 @@ function renderMessages() {
 function renderChatHistoryList() {
   const listEl = document.getElementById('chatHistoryList');
   if (chatList.length === 0) {
-    listEl.innerHTML = `<div class="empty-history">No conversations yet.</div>`;
+    listEl.innerHTML = `<div class="empty-history">${escapeHtml(t('sidebar.noConversations'))}</div>`;
     return;
   }
   listEl.innerHTML = chatList.map(chat => `
     <div class="chat-history-item ${chat.id === currentChatId ? 'active' : ''}" data-chat-id="${chat.id}">
-      <span class="chat-history-title">${escapeHtml(chat.title || 'Untitled chat')}</span>
+      <span class="chat-history-title">${escapeHtml(chat.title || t('sidebar.untitledChat'))}</span>
       <button class="delete-chat-button" data-delete-chat-id="${chat.id}" aria-label="Delete chat">✕</button>
     </div>
   `).join('');
@@ -1138,7 +1538,7 @@ function renderChatHistoryList() {
 function renderAdminKeyList() {
   const listEl = document.getElementById('adminKeyList');
   if (apiKeys.length === 0) {
-    listEl.innerHTML = `<div class="empty-history">No API keys added yet.</div>`;
+    listEl.innerHTML = `<div class="empty-history">${escapeHtml(t('admin.noKeys'))}</div>`;
     return;
   }
   listEl.innerHTML = apiKeys.map(k => `
@@ -1147,12 +1547,12 @@ function renderAdminKeyList() {
         <span class="admin-key-label">${escapeHtml(k.label)}</span>
         <span class="admin-key-masked">••••${k.key.slice(-4)}</span>
         <span class="admin-key-status ${k.status === 'exhausted' ? 'exhausted' : 'active'}">
-          ${k.status === 'exhausted' ? 'Quota exhausted' : 'Active'}
+          ${k.status === 'exhausted' ? escapeHtml(t('admin.quotaExhausted')) : escapeHtml(t('admin.active'))}
         </span>
       </div>
       <div class="admin-key-actions">
-        ${k.status === 'exhausted' ? `<button class="admin-small-button" data-reactivate="${k.id}">Reactivate</button>` : ''}
-        <button class="admin-small-button-danger" data-remove="${k.id}">Remove</button>
+        ${k.status === 'exhausted' ? `<button class="admin-small-button" data-reactivate="${k.id}">${escapeHtml(t('admin.reactivate'))}</button>` : ''}
+        <button class="admin-small-button-danger" data-remove="${k.id}">${escapeHtml(t('admin.remove'))}</button>
       </div>
     </div>
   `).join('');
@@ -1174,12 +1574,12 @@ function updateTopBarMenuIcon() {
   if (isEmptyChat) {
     dotsIcon.style.display = 'none';
     incognitoIcon.style.display = 'block';
-    menuBtn.setAttribute('aria-label', 'Toggle temporary chat');
+    menuBtn.setAttribute('aria-label', t('menu.toggleTemporaryChat'));
     menuBtn.classList.toggle('incognito-active', isTemporaryChat);
   } else {
     dotsIcon.style.display = 'block';
     incognitoIcon.style.display = 'none';
-    menuBtn.setAttribute('aria-label', 'More options');
+    menuBtn.setAttribute('aria-label', t('menu.moreOptions'));
     menuBtn.classList.remove('incognito-active');
   }
   updateEmptyStateCopy();
@@ -1191,12 +1591,12 @@ function updateEmptyStateCopy() {
   if (isTemporaryChat) {
     title.style.display = 'none';
     subtitle.className = 'empty-state-incognito-text';
-    subtitle.textContent = 'Chat ini tidak akan muncul di riwayat percakapan kamu. Codspire tetap mengingat konteks selama sesi ini, dan chat akan hilang begitu kamu pindah atau memulai chat baru.';
+    subtitle.textContent = t('empty.incognitoText');
   } else {
     title.style.display = '';
     subtitle.className = 'empty-state-subtitle';
-    title.textContent = 'Codspire';
-    subtitle.textContent = 'Your AI pair programmer. Ask anything about code.';
+    title.textContent = t('empty.title');
+    subtitle.textContent = t('empty.subtitle');
   }
 }
 
@@ -1272,11 +1672,11 @@ function closeTopBarMenu() {
 
 function buildChatExportText() {
   const chatMeta = chatList.find(c => c.id === currentChatId);
-  const title = (chatMeta && chatMeta.title) || 'Codspire Chat';
+  const title = (chatMeta && chatMeta.title) || t('export.defaultTitle');
 
-  const lines = [`${title}`, `Diekspor dari Codspire`, ''];
+  const lines = [`${title}`, t('export.exportedFrom'), ''];
   messages.forEach(msg => {
-    const speaker = msg.role === 'user' ? 'User' : 'Codspire';
+    const speaker = msg.role === 'user' ? t('export.userLabel') : 'Codspire';
     lines.push(`${speaker}:`);
     lines.push(msg.content);
     lines.push('');
@@ -1296,7 +1696,7 @@ async function handleChatMenuShare() {
   closeTopBarMenu();
 
   if (!currentChatId || messages.length === 0) {
-    showError('Belum ada percakapan untuk dibagikan.');
+    showError(t('error.noConversationToShare'));
     return;
   }
 
@@ -1331,18 +1731,18 @@ async function handleChatMenuShare() {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   } catch (err) {
     console.error('Failed to export chat', err);
-    showError('Gagal mengekspor percakapan. Coba lagi ya.');
+    showError(t('error.exportFailed'));
   }
 }
 
 function handleChatMenuRename() {
   closeTopBarMenu();
   if (!currentChatId) {
-    showError('Belum ada percakapan untuk di-rename. Kirim pesan dulu ya.');
+    showError(t('error.noConversationToRename'));
     return;
   }
   const existing = chatList.find(c => c.id === currentChatId);
-  const newTitle = window.prompt('Rename chat', existing ? existing.title : '');
+  const newTitle = window.prompt(t('menu.rename'), existing ? existing.title : '');
   if (newTitle !== null) {
     renameChat(currentChatId, newTitle);
   }
@@ -1351,10 +1751,10 @@ function handleChatMenuRename() {
 function handleChatMenuDelete() {
   closeTopBarMenu();
   if (!currentChatId) {
-    showError('Belum ada percakapan untuk dihapus.');
+    showError(t('error.noConversationToDelete'));
     return;
   }
-  const confirmed = window.confirm('Hapus percakapan ini? Tindakan ini tidak bisa dibatalkan.');
+  const confirmed = window.confirm(t('confirm.deleteChat'));
   if (confirmed) {
     removeChat(currentChatId);
   }
@@ -1367,7 +1767,7 @@ async function handleSend() {
   if (isListening) stopListening();
 
   if (apiKeys.length === 0) {
-    showError('No API keys configured yet. Open the admin panel to add one.');
+    showError(t('error.noApiKeys'));
     return;
   }
 
@@ -1422,11 +1822,11 @@ async function handleSend() {
     console.error(err);
     isLoading = false;
     if (err.message === 'ALL_KEYS_EXHAUSTED' || err.message === 'ALL_KEYS_FAILED') {
-      showError('All configured API keys are exhausted or invalid. Add a new key in the admin panel.');
+      showError(t('error.allKeysExhausted'));
     } else if (err.message === 'NO_KEYS') {
-      showError('No API keys configured yet. Open the admin panel to add one.');
+      showError(t('error.noApiKeys'));
     } else {
-      showError('Something went wrong reaching the model. Please try again.');
+      showError(t('error.modelUnreachable'));
     }
     renderMessages();
   }
@@ -1589,15 +1989,74 @@ function closeModelSheet() {
   }, 250);
 }
 
+// Generic bottom-sheet open/close, used by Settings and Language pickers.
+function openGenericSheet(sheetId, overlayId) {
+  const sheet = document.getElementById(sheetId);
+  const overlay = document.getElementById(overlayId);
+  sheet.classList.remove('expanded');
+  sheet.classList.add('half');
+  sheet.style.height = '';
+  overlay.classList.add('visible');
+  sheet.style.transform = 'translateY(100%)';
+  void sheet.offsetHeight;
+  requestAnimationFrame(() => {
+    sheet.style.transform = 'translateY(0)';
+  });
+}
+function closeGenericSheet(sheetId, overlayId) {
+  const sheet = document.getElementById(sheetId);
+  const overlay = document.getElementById(overlayId);
+  sheet.style.transform = 'translateY(100%)';
+  setTimeout(() => {
+    overlay.classList.remove('visible');
+    sheet.classList.remove('expanded', 'half');
+    sheet.style.height = '';
+    sheet.style.transform = 'translateY(0)';
+  }, 250);
+}
+function openSettingsSheet() { openGenericSheet('settingsSheet', 'settingsSheetOverlay'); }
+function closeSettingsSheet() { closeGenericSheet('settingsSheet', 'settingsSheetOverlay'); }
+function openLanguageSheet() { openGenericSheet('languageSheet', 'languageSheetOverlay'); }
+function closeLanguageSheet() { closeGenericSheet('languageSheet', 'languageSheetOverlay'); }
+function openAttachSheet() {
+  const sheet = document.getElementById('attachSheet');
+  const overlay = document.getElementById('attachSheetOverlay');
+  sheet.classList.remove('expanded');
+  sheet.classList.add('half');
+  sheet.style.height = '';
+  overlay.classList.add('visible');
+  sheet.style.transform = 'translateY(100%)';
+  void sheet.offsetHeight;
+  requestAnimationFrame(() => {
+    sheet.style.transform = 'translateY(0)';
+  });
+}
+function closeAttachSheet() {
+  const sheet = document.getElementById('attachSheet');
+  const overlay = document.getElementById('attachSheetOverlay');
+  sheet.style.transform = 'translateY(100%)';
+  setTimeout(() => {
+    overlay.classList.remove('visible');
+    sheet.classList.remove('expanded', 'half');
+    sheet.style.height = '';
+    sheet.style.transform = 'translateY(0)';
+  }, 250);
+}
+
 // ============================================================
-// MODEL SHEET DRAG — 3 snap points: collapsed (natural), half (50vh), expanded (92vh)
 // ============================================================
-(function setupSheetDrag() {
-  const sheet = document.getElementById('modelSheet');
-  const handle = document.getElementById('modelSheetHandle');
-  const header = document.getElementById('modelSheetHeaderDrag');
+// SHEET DRAG — smooth snap between half (50vh) and expanded (92vh),
+// with velocity-aware drag-down-to-dismiss. Reusable for model sheet and attach sheet.
+// ============================================================
+function setupSheetDrag(sheetId, handleId, headerId, onDismiss) {
+  const sheet = document.getElementById(sheetId);
+  const handle = document.getElementById(handleId);
+  const header = document.getElementById(headerId);
 
   let startY = 0;
+  let lastY = 0;
+  let lastTime = 0;
+  let velocity = 0;
   let dragging = false;
   let startHeight = 0;
   let naturalHeight = 0; // height with no size class applied (collapsed)
@@ -1620,6 +2079,9 @@ function closeModelSheet() {
   function dragStart(e) {
     dragging = true;
     startY = getClientY(e);
+    lastY = startY;
+    lastTime = Date.now();
+    velocity = 0;
     startHeight = sheet.getBoundingClientRect().height;
     naturalHeight = measureNaturalHeight();
     sheet.classList.add('dragging');
@@ -1641,6 +2103,13 @@ function closeModelSheet() {
 
     sheet.style.height = newH + 'px';
     sheet.style.transform = 'translateY(0)';
+
+    const now = Date.now();
+    const dt = now - lastTime;
+    if (dt > 0) velocity = (y - lastY) / dt; // px/ms, positive = moving down
+    lastY = y;
+    lastTime = now;
+
     if (e.cancelable) e.preventDefault();
   }
 
@@ -1653,24 +2122,46 @@ function closeModelSheet() {
     const currentH = sheet.getBoundingClientRect().height;
 
     const halfH = viewportH * 0.5;
+    const maxH = viewportH * 0.92;
+    const isFlickDown = velocity > 0.5;
+    const isFlickUp = velocity < -0.5;
 
-    // Dismiss hanya kalau ditarik turun jauh di bawah tinggi half (menuju posisi awal/collapsed)
-    if (currentH < halfH * 0.5) {
-      closeModelSheet();
+    // Titik tengah antara half dan expanded — jadi patokan naik ke full screen.
+    const midUpper = (halfH + maxH) / 2;
+    // Titik tengah antara collapsed/dismiss-zone dan half — jadi patokan turun ke dismiss.
+    const dismissZone = halfH * 0.6;
+
+    // Geser ke bawah jauh (masuk dismiss-zone) atau flick cepat ke bawah -> tutup.
+    if ((currentH < dismissZone && !isFlickUp) || (isFlickDown && currentH < halfH)) {
+      onDismiss();
       return;
     }
 
-    sheet.style.height = '';
-    sheet.style.transform = 'translateY(0)';
-
-    // Snap dua titik saja: half & expanded.
-    // Belum sampai tengah (< halfH) -> tetap snap ke half, bukan balik ke collapsed.
-    // Sudah lewat tengah -> snap full screen (expanded).
-    if (currentH >= halfH) {
-      sheet.classList.add('expanded');
+    // Tentukan target snap dulu (tanpa mengubah style), baru animasikan ke situ dengan transisi height
+    // yang sama seperti drag biasa — supaya smooth persis seperti snap ke expanded.
+    let targetCls;
+    if (currentH >= midUpper || (isFlickUp && currentH > halfH)) {
+      targetCls = 'expanded';
     } else {
-      sheet.classList.add('half');
+      targetCls = 'half';
     }
+    const targetH = targetCls === 'expanded' ? maxH : halfH;
+
+    // Set height eksplisit ke posisi sekarang dulu (bukan 'auto'), lalu di frame berikutnya
+    // set ke targetH — ini yang membuat transisi height ter-animate mulus.
+    sheet.style.height = currentH + 'px';
+    void sheet.offsetHeight; // force reflow
+    requestAnimationFrame(() => {
+      sheet.style.height = targetH + 'px';
+      sheet.style.transform = 'translateY(0)';
+    });
+
+    // Setelah transisi selesai, bersihkan inline height dan pasang class permanen,
+    // supaya resize window dsb tetap mengikuti CSS class, bukan px yang dibekukan.
+    setTimeout(() => {
+      sheet.style.height = '';
+      sheet.classList.add(targetCls);
+    }, 300);
   }
 
   [handle, header].forEach(el => {
@@ -1684,7 +2175,11 @@ function closeModelSheet() {
 
   window.addEventListener('mousemove', (e) => { if (dragging) dragMove(e); });
   window.addEventListener('mouseup', dragEnd);
-})();
+}
+setupSheetDrag('modelSheet', 'modelSheetHandle', 'modelSheetHeaderDrag', closeModelSheet);
+setupSheetDrag('attachSheet', 'attachSheetHandle', 'attachSheetHeaderDrag', closeAttachSheet);
+setupSheetDrag('settingsSheet', 'settingsSheetHandle', 'settingsSheetHeaderDrag', closeSettingsSheet);
+setupSheetDrag('languageSheet', 'languageSheetHandle', 'languageSheetHeaderDrag', closeLanguageSheet);
 function autoResizeTextarea() {
   const textarea = document.getElementById('inputTextarea');
   textarea.style.height = 'auto';
@@ -1729,8 +2224,38 @@ document.getElementById('adminOverlay').addEventListener('click', (e) => {
 document.getElementById('errorBannerLink').addEventListener('click', openAdmin);
 document.getElementById('addKeyBtn').addEventListener('click', addKey);
 document.getElementById('sendBtn').addEventListener('click', handleSend);
-document.getElementById('attachBtn').addEventListener('click', () => {
-  // Placeholder — attach-file logic not implemented yet.
+document.getElementById('attachBtn').addEventListener('click', openAttachSheet);
+document.getElementById('closeAttachSheetBtn').addEventListener('click', closeAttachSheet);
+document.getElementById('attachSheetOverlay').addEventListener('click', (e) => {
+  if (e.target.id === 'attachSheetOverlay') closeAttachSheet();
+});
+document.getElementById('attachOptionCamera').addEventListener('click', () => {
+  document.getElementById('attachCameraInput').click();
+});
+document.getElementById('attachOptionPhoto').addEventListener('click', () => {
+  document.getElementById('attachPhotoInput').click();
+});
+document.getElementById('attachOptionFile').addEventListener('click', () => {
+  document.getElementById('attachFileInput').click();
+});
+function handleAttachedFiles(fileList) {
+  // TODO: hook into actual message-attachment pipeline.
+  // For now just close the sheet after a file/photo is picked.
+  if (fileList && fileList.length > 0) {
+    closeAttachSheet();
+  }
+}
+document.getElementById('attachCameraInput').addEventListener('change', (e) => handleAttachedFiles(e.target.files));
+document.getElementById('attachPhotoInput').addEventListener('change', (e) => handleAttachedFiles(e.target.files));
+document.getElementById('attachFileInput').addEventListener('change', (e) => handleAttachedFiles(e.target.files));
+document.getElementById('attachWebSearchToggle').addEventListener('click', () => {
+  document.getElementById('attachWebSearchToggle').classList.toggle('on');
+});
+document.getElementById('attachOptionToolAccess').addEventListener('click', () => {
+  // Placeholder — tool access sub-menu not implemented yet.
+});
+document.getElementById('attachOptionConnectors').addEventListener('click', () => {
+  // Placeholder — connectors sub-menu not implemented yet.
 });
 document.getElementById('modelPillBtn').addEventListener('click', openModelSheet);
 document.getElementById('closeModelSheetBtn').addEventListener('click', closeModelSheet);
@@ -1738,6 +2263,34 @@ document.getElementById('modelSheetOverlay').addEventListener('click', (e) => {
   if (e.target.id === 'modelSheetOverlay') closeModelSheet();
 });
 document.getElementById('modelOptionSinux').addEventListener('click', closeModelSheet);
+
+// ---- Settings & language ----
+document.getElementById('sidebarUserFooter').addEventListener('click', (e) => {
+  if (e.target.closest('#logoutBtn')) return;
+  closeSidebar();
+  openSettingsSheet();
+});
+document.getElementById('closeSettingsSheetBtn').addEventListener('click', closeSettingsSheet);
+document.getElementById('settingsSheetOverlay').addEventListener('click', (e) => {
+  if (e.target.id === 'settingsSheetOverlay') closeSettingsSheet();
+});
+document.getElementById('settingsOptionLanguage').addEventListener('click', () => {
+  closeSettingsSheet();
+  setTimeout(openLanguageSheet, 260);
+});
+document.getElementById('closeLanguageSheetBtn').addEventListener('click', closeLanguageSheet);
+document.getElementById('languageSheetOverlay').addEventListener('click', (e) => {
+  if (e.target.id === 'languageSheetOverlay') closeLanguageSheet();
+});
+document.getElementById('languageOptionEn').addEventListener('click', () => {
+  setLanguage('en');
+  closeLanguageSheet();
+});
+document.getElementById('languageOptionId').addEventListener('click', () => {
+  setLanguage('id');
+  closeLanguageSheet();
+});
+
 // ---- Speech-to-text (mic) ----
 const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
 let speechRecognition = null;
@@ -1779,11 +2332,11 @@ function initSpeechRecognition() {
 
   recog.onerror = (e) => {
     if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
-      showError('Akses mikrofon ditolak. Izinkan akses mic di pengaturan browser untuk pakai voice input.');
+      showError(t('error.micDenied'));
     } else if (e.error === 'no-speech') {
       // ignore, will auto-restart via onend
     } else {
-      showError('Terjadi kesalahan pada voice input: ' + e.error);
+      showError(t('error.voiceGeneric') + e.error);
     }
     if (e.error !== 'no-speech') stopListening();
   };
@@ -1802,7 +2355,7 @@ function stopListening() {
 
 function startListening() {
   if (!SpeechRecognitionAPI) {
-    showError('Browser ini belum mendukung voice input (Speech Recognition). Coba pakai Chrome.');
+    showError(t('error.noSpeechSupport'));
     return;
   }
   if (!speechRecognition) speechRecognition = initSpeechRecognition();
@@ -1849,7 +2402,7 @@ function applyUserToSidebar(user) {
   }
   footer.style.display = 'flex';
   document.getElementById('sidebarUserAvatar').src = user.photoURL || '';
-  document.getElementById('sidebarUserName').textContent = user.displayName || 'Pengguna';
+  document.getElementById('sidebarUserName').textContent = user.displayName || t('sidebar.defaultUserName');
   document.getElementById('sidebarUserEmail').textContent = user.email || '';
   adminBtn.style.display = user.email === ADMIN_EMAIL ? 'block' : 'none';
 }
@@ -1892,7 +2445,7 @@ async function signInWithGoogle() {
   const errorEl = document.getElementById('loginError');
   errorEl.classList.remove('visible');
   spinner.classList.add('visible');
-  btnLabel.textContent = 'Menghubungkan…';
+  btnLabel.textContent = t('login.connecting');
 
   try {
     const { auth, authMod } = window.__codspireFirebase;
@@ -1902,14 +2455,14 @@ async function signInWithGoogle() {
   } catch (err) {
     console.error('Google sign-in failed', err);
     spinner.classList.remove('visible');
-    btnLabel.textContent = 'Masuk dengan Google';
-    let msg = 'Gagal masuk dengan Google. Coba lagi.';
+    btnLabel.textContent = t('login.googleBtn');
+    let msg = t('login.genericError');
     if (err && err.code === 'auth/unauthorized-domain') {
-      msg = 'Domain ini belum diizinkan di Firebase Console (Authentication → Settings → Authorized domains).';
+      msg = t('login.unauthorizedDomain');
     } else if (err && err.code === 'auth/popup-blocked') {
-      msg = 'Popup diblokir browser. Izinkan popup untuk situs ini lalu coba lagi.';
+      msg = t('login.popupBlocked');
     } else if (err && err.code === 'auth/popup-closed-by-user') {
-      msg = 'Popup ditutup sebelum login selesai.';
+      msg = t('login.popupClosed');
     }
     errorEl.textContent = msg;
     errorEl.classList.add('visible');
@@ -1928,14 +2481,17 @@ async function logOut() {
 }
 
 document.getElementById('loginGoogleBtn').addEventListener('click', signInWithGoogle);
-document.getElementById('logoutBtn').addEventListener('click', () => {
-  const confirmed = window.confirm('Keluar dari akun ini?');
+document.getElementById('logoutBtn').addEventListener('click', (e) => {
+  e.stopPropagation();
+  const confirmed = window.confirm(t('logout.confirm'));
   if (confirmed) logOut();
 });
 
 // ============================================================
 // INIT
 // ============================================================
+applyTranslations();
+
 let __codspireInitStarted = false;
 function startCodspireInit() {
   if (__codspireInitStarted) return;
