@@ -125,6 +125,15 @@
   .login-google-btn svg { flex-shrink: 0; }
   .login-error { margin-top: 16px; font-size: 12.5px; color: #B3402A; line-height: 1.5; display: none; }
   .login-error.visible { display: block; }
+  .login-legal-links {
+    display: flex; justify-content: space-between; align-items: center;
+    width: 100%; margin-top: 28px;
+  }
+  .login-legal-links a {
+    font-size: 12.5px; color: var(--ink-soft); text-decoration: underline;
+    text-underline-offset: 3px; cursor: pointer;
+  }
+  .login-legal-links a:active { color: var(--terracotta); }
   .login-loading-spinner {
     width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--terracotta);
     border-radius: 50%; animation: codspire-spin 0.7s linear infinite; display: none;
@@ -614,6 +623,10 @@
       <span class="login-loading-spinner" id="loginSpinner"></span>
     </button>
     <div class="login-error" id="loginError"></div>
+    <div class="login-legal-links">
+      <a href="terms.html" target="_blank" rel="noopener" data-i18n="login.terms">Terms of Service</a>
+      <a href="privacy.html" target="_blank" rel="noopener" data-i18n="login.privacy">Privacy Policy</a>
+    </div>
   </div>
 
   <div class="overlay" id="overlay"></div>
@@ -960,6 +973,8 @@ const I18N_STRINGS = {
     'login.unauthorizedDomain': 'This domain isn\u2019t authorized yet in Firebase Console (Authentication \u2192 Settings \u2192 Authorized domains).',
     'login.popupBlocked': 'The browser blocked the popup. Allow popups for this site and try again.',
     'login.popupClosed': 'The popup was closed before sign-in finished.',
+    'login.terms': 'Terms of Service',
+    'login.privacy': 'Privacy Policy',
     'sidebar.newChat': '+ New chat',
     'sidebar.adminPanel': '\u2699 Admin panel',
     'sidebar.noConversations': 'No conversations yet.',
@@ -1028,6 +1043,8 @@ const I18N_STRINGS = {
     'login.unauthorizedDomain': 'Domain ini belum diizinkan di Firebase Console (Authentication \u2192 Settings \u2192 Authorized domains).',
     'login.popupBlocked': 'Popup diblokir browser. Izinkan popup untuk situs ini lalu coba lagi.',
     'login.popupClosed': 'Popup ditutup sebelum login selesai.',
+    'login.terms': 'Ketentuan Layanan',
+    'login.privacy': 'Kebijakan Privasi',
     'sidebar.newChat': '+ Chat baru',
     'sidebar.adminPanel': '\u2699 Panel admin',
     'sidebar.noConversations': 'Belum ada percakapan.',
