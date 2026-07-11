@@ -225,6 +225,14 @@
   .top-bar-menu-btn:active { background: var(--cream-darker); }
   .top-bar-menu-btn.incognito-active { color: var(--terracotta); background: var(--cream-darker); }
 
+  .top-bar-actions { display: flex; align-items: center; gap: 2px; }
+  .top-bar-new-chat-btn {
+    background: none; border: none; cursor: pointer; padding: 8px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ink); border-radius: 8px;
+  }
+  .top-bar-new-chat-btn:active { background: var(--cream-darker); }
+
   .top-bar-menu-dropdown {
     display: none; flex-direction: column;
     position: absolute; top: 52px; right: 14px; z-index: 50;
@@ -540,6 +548,9 @@
   .settings-row-sub { font-size: 12.5px; color: var(--ink-soft); }
   .settings-row-chevron { color: var(--ink-soft); font-size: 15px; flex-shrink: 0; }
 
+  .settings-row-danger .settings-row-title { color: #c0392b; }
+  .settings-row-icon-danger { color: #c0392b; background: rgba(192, 57, 43, 0.1); }
+
   .language-page-list { display: flex; flex-direction: column; gap: 8px; }
   .language-page-item {
     display: flex; justify-content: space-between; align-items: center;
@@ -596,8 +607,8 @@
         <span class="sidebar-user-name" id="sidebarUserName"></span>
         <span class="sidebar-user-email" id="sidebarUserEmail"></span>
       </div>
-      <button class="icon-button" id="logoutBtn" aria-label="Log out" title="Log out">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      <button class="icon-button" id="openSettingsBtn" aria-label="Settings" title="Settings">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
       </button>
     </div>
   </div>
@@ -609,19 +620,28 @@
         <span class="hamburger-bar"></span>
         <span class="hamburger-bar"></span>
       </button>
-      <button class="top-bar-menu-btn" id="topBarMenuBtn" aria-label="More options">
-        <svg id="topBarMenuIconDots" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="12" cy="5" r="1.9" fill="currentColor"/>
-          <circle cx="12" cy="12" r="1.9" fill="currentColor"/>
-          <circle cx="12" cy="19" r="1.9" fill="currentColor"/>
-        </svg>
-        <svg id="topBarMenuIconIncognito" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:none;">
-          <path d="M3 12c1.2-3.5 4-5.5 9-5.5s7.8 2 9 5.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-          <circle cx="7" cy="14.5" r="3" stroke="currentColor" stroke-width="1.6"/>
-          <circle cx="17" cy="14.5" r="3" stroke="currentColor" stroke-width="1.6"/>
-          <path d="M10 14.5h4M4 13l-2-1M20 13l2-1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-        </svg>
-      </button>
+      <div class="top-bar-actions">
+        <button class="top-bar-new-chat-btn" id="topBarNewChatBtn" aria-label="New chat" style="display:none;">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="6.5" y="3.5" width="12" height="9" rx="2.2" stroke="currentColor" stroke-width="1.4" opacity="0.45"/>
+            <rect x="3.5" y="8" width="13" height="12.5" rx="2.4" stroke="currentColor" stroke-width="1.7"/>
+            <path d="M10 14v4M8 16h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+        </button>
+        <button class="top-bar-menu-btn" id="topBarMenuBtn" aria-label="More options">
+          <svg id="topBarMenuIconDots" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="5" r="1.9" fill="currentColor"/>
+            <circle cx="12" cy="12" r="1.9" fill="currentColor"/>
+            <circle cx="12" cy="19" r="1.9" fill="currentColor"/>
+          </svg>
+          <svg id="topBarMenuIconIncognito" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:none;">
+            <path d="M3 12c1.2-3.5 4-5.5 9-5.5s7.8 2 9 5.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="7" cy="14.5" r="3" stroke="currentColor" stroke-width="1.6"/>
+            <circle cx="17" cy="14.5" r="3" stroke="currentColor" stroke-width="1.6"/>
+            <path d="M10 14.5h4M4 13l-2-1M20 13l2-1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
       <div class="top-bar-menu-dropdown" id="topBarMenuDropdown">
         <button class="top-bar-menu-item" id="chatMenuShareBtn">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -815,6 +835,14 @@
           </div>
           <span class="settings-row-chevron">›</span>
         </button>
+        <button class="settings-row settings-row-danger" id="settingsOptionLogout">
+          <div class="settings-row-icon settings-row-icon-danger">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          </div>
+          <div class="settings-row-text">
+            <span class="settings-row-title" data-i18n="settings.logout">Log out</span>
+          </div>
+        </button>
       </div>
     </div>
   </div>
@@ -941,6 +969,7 @@ const I18N_STRINGS = {
     'settings.selectLanguage': 'Select language',
     'settings.langEnglish': 'English',
     'settings.langIndonesian': 'Indonesia',
+    'settings.logout': 'Log out',
     'logout.confirm': 'Log out of this account?',
     'error.noConversationToShare': 'No conversation to share yet.',
     'error.exportFailed': 'Failed to export the conversation. Please try again.',
@@ -1005,6 +1034,7 @@ const I18N_STRINGS = {
     'settings.selectLanguage': 'Pilih bahasa',
     'settings.langEnglish': 'English',
     'settings.langIndonesian': 'Indonesia',
+    'settings.logout': 'Keluar',
     'logout.confirm': 'Keluar dari akun ini?',
     'error.noConversationToShare': 'Belum ada percakapan untuk dibagikan.',
     'error.exportFailed': 'Gagal mengekspor percakapan. Coba lagi ya.',
@@ -1506,6 +1536,7 @@ function updatePlaceholder() {
 function renderMessages() {
   updatePlaceholder();
   updateTopBarMenuIcon();
+  updateTopBarNewChatVisibility();
   const container = document.getElementById('messagesContainer');
   const emptyState = document.getElementById('emptyState');
 
@@ -1647,6 +1678,12 @@ function hideError() {
 // ============================================================
 // CHAT ACTIONS
 // ============================================================
+function updateTopBarNewChatVisibility() {
+  const btn = document.getElementById('topBarNewChatBtn');
+  if (!btn) return;
+  btn.style.display = messages.length > 0 ? 'flex' : 'none';
+}
+
 function startNewChat() {
   currentChatId = null;
   messages = [];
@@ -2215,6 +2252,7 @@ function updateSendButtonState() {
 // EVENT WIRING
 // ============================================================
 document.getElementById('openSidebarBtn').addEventListener('click', openSidebar);
+document.getElementById('topBarNewChatBtn').addEventListener('click', startNewChat);
 document.getElementById('topBarMenuBtn').addEventListener('click', (e) => {
   e.stopPropagation();
   if (messages.length === 0) {
@@ -2285,8 +2323,7 @@ document.getElementById('modelSheetOverlay').addEventListener('click', (e) => {
 document.getElementById('modelOptionSinux').addEventListener('click', closeModelSheet);
 
 // ---- Settings & language ----
-document.getElementById('sidebarUserFooter').addEventListener('click', (e) => {
-  if (e.target.closest('#logoutBtn')) return;
+document.getElementById('sidebarUserFooter').addEventListener('click', () => {
   closeSidebar();
   openSettingsSheet();
 });
@@ -2295,11 +2332,16 @@ document.getElementById('settingsOptionLanguage').addEventListener('click', open
 document.getElementById('closeLanguagePageBtn').addEventListener('click', closeLanguageSheet);
 document.getElementById('languageOptionEn').addEventListener('click', () => {
   setLanguage('en');
-  closeLanguageSheet();
 });
 document.getElementById('languageOptionId').addEventListener('click', () => {
   setLanguage('id');
-  closeLanguageSheet();
+});
+document.getElementById('settingsOptionLogout').addEventListener('click', () => {
+  const confirmed = window.confirm(t('logout.confirm'));
+  if (confirmed) {
+    closeSettingsSheet();
+    logOut();
+  }
 });
 
 // ---- Speech-to-text (mic) ----
@@ -2492,11 +2534,6 @@ async function logOut() {
 }
 
 document.getElementById('loginGoogleBtn').addEventListener('click', signInWithGoogle);
-document.getElementById('logoutBtn').addEventListener('click', (e) => {
-  e.stopPropagation();
-  const confirmed = window.confirm(t('logout.confirm'));
-  if (confirmed) logOut();
-});
 
 // ============================================================
 // INIT
