@@ -327,6 +327,8 @@
   .dot:nth-child(2) { animation-delay: 0.15s; }
   .dot:nth-child(3) { animation-delay: 0.3s; }
 
+  .stream-cursor { display: inline-block; animation: codspire-cursor-blink 0.9s step-start infinite; color: currentColor; }
+  @keyframes codspire-cursor-blink { 50% { opacity: 0; } }
   .codspire-loading-mark { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; }
   .codspire-loading-mark svg { width: 100%; height: 100%; }
   .codspire-loading-mark .petal {
@@ -2341,6 +2343,7 @@ async function callGeminiWithRotation(msgs, onKeyUsed, systemPromptOverride, opt
   const effectiveSystemPrompt = systemPromptOverride || buildSystemPrompt();
   const enableMemoryTool = !!(options && options.enableMemoryTool);
   const githubCtx = options && options.githubCtx; // { token, login } or null
+  const onTextChunk = options && options.onTextChunk; // (text) => void, called live as tokens stream in
 
   for (const keyObj of activeKeys) {
     try {
@@ -2371,7 +2374,7 @@ async function callGeminiWithRotation(msgs, onKeyUsed, systemPromptOverride, opt
         requestBody.tools = [{ functionDeclarations }];
       }
 
-      const result = await runGeminiToolLoop(requestBody, keyObj, enableMemoryTool, githubCtx);
+      const result = await runGeminiToolLoop(requestBody, keyObj, enableMemoryTool, githubCtx, onTextChunk);
       if (result.status === 'key_exhausted') {
         lastError = new Error(`Key exhausted (status ${result.httpStatus})`);
         onKeyUsed(keyObj.id, 'exhausted');
@@ -2394,27 +2397,115 @@ async function callGeminiWithRotation(msgs, onKeyUsed, systemPromptOverride, opt
   throw lastError || new Error('ALL_KEYS_FAILED');
 }
 
+// Wraps fetch with a hard timeout so a stalled connection (bad network, huge
+// payload, provider hang) always surfaces as an error instead of leaving the
+// UI stuck on the loading indicator forever.
+const GEMINI_FETCH_TIMEOUT_MS = 45000;
+async function fetchWithTimeout(url, options, timeoutMs) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs || GEMINI_FETCH_TIMEOUT_MS);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      throw new Error('Request timed out — the model took too long to respond.');
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+// Parses a Gemini streamGenerateContent SSE body, calling onTextChunk(delta)
+// as text arrives, and returns the fully assembled response data in the same
+// shape a non-streaming generateContent call would (candidates[0].content.parts).
+async function streamGeminiSSE(response, onTextChunk) {
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder('utf-8');
+  let buffer = '';
+  let accumulatedText = '';
+  const otherParts = []; // functionCall parts etc. (non-text), preserved in order
+  let lastFinishReason = null;
+  let promptBlockReason = null;
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+
+    // SSE frames are separated by blank lines; each frame's payload line(s)
+    // start with "data: ".
+    let boundary;
+    while ((boundary = buffer.indexOf('\n\n')) !== -1) {
+      const frame = buffer.slice(0, boundary);
+      buffer = buffer.slice(boundary + 2);
+      const dataLines = frame.split('\n').filter(l => l.startsWith('data:'));
+      if (dataLines.length === 0) continue;
+      const jsonStr = dataLines.map(l => l.slice(5).trim()).join('');
+      if (!jsonStr || jsonStr === '[DONE]') continue;
+
+      let chunk;
+      try {
+        chunk = JSON.parse(jsonStr);
+      } catch {
+        continue; // ignore malformed/partial frame
+      }
+
+      if (chunk.promptFeedback && chunk.promptFeedback.blockReason) {
+        promptBlockReason = chunk.promptFeedback.blockReason;
+      }
+      const candidate = chunk?.candidates?.[0];
+      if (!candidate) continue;
+      if (candidate.finishReason) lastFinishReason = candidate.finishReason;
+      const parts = candidate?.content?.parts || [];
+      for (const part of parts) {
+        if (typeof part.text === 'string') {
+          accumulatedText += part.text;
+          if (onTextChunk) onTextChunk(accumulatedText);
+        } else if (part.functionCall) {
+          otherParts.push(part);
+        }
+      }
+    }
+  }
+
+  const assembledParts = [];
+  if (accumulatedText) assembledParts.push({ text: accumulatedText });
+  assembledParts.push(...otherParts);
+
+  return {
+    candidates: [{ content: { parts: assembledParts }, finishReason: lastFinishReason }],
+    promptFeedback: promptBlockReason ? { blockReason: promptBlockReason } : undefined
+  };
+}
+
 // Runs the Gemini tool-calling loop against a single API key/requestBody.
+// Streams text as it arrives (via onTextChunk) for a live "typing" effect.
 // Read-tool calls (github_list_repos etc.) auto-execute and the loop continues.
 // Write-tool calls (github_write_file, github_delete_file) pause the loop and
 // return status 'pending_confirmation' so the UI can show a confirm/cancel box;
 // the loop is resumed later via resumeGeminiToolLoop() once the user decides.
-async function runGeminiToolLoop(requestBody, keyObj, enableMemoryTool, githubCtx) {
+async function runGeminiToolLoop(requestBody, keyObj, enableMemoryTool, githubCtx, onTextChunk) {
   let finalText = null;
   let safetyCounter = 0;
   while (finalText === null && safetyCounter < 8) {
     safetyCounter++;
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-goog-api-key': keyObj.key
-        },
-        body: JSON.stringify(requestBody)
-      }
-    );
+    let response;
+    try {
+      response = await fetchWithTimeout(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:streamGenerateContent?alt=sse`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-goog-api-key': keyObj.key
+          },
+          body: JSON.stringify(requestBody)
+        }
+      );
+    } catch (err) {
+      return { status: 'error', error: err };
+    }
 
     if (response.status === 429 || response.status === 403 || response.status === 401) {
       return { status: 'key_exhausted', httpStatus: response.status };
@@ -2424,7 +2515,10 @@ async function runGeminiToolLoop(requestBody, keyObj, enableMemoryTool, githubCt
       return { status: 'error', error: new Error(`API error ${response.status}: ${errText}`) };
     }
 
-    const data = await response.json();
+    // Reset the visible bubble text at the start of each turn of the loop
+    // (a fresh turn means the previous turn was a tool call, not user-visible text).
+    if (onTextChunk) onTextChunk('');
+    const data = await streamGeminiSSE(response, onTextChunk);
     const candidateParts = data?.candidates?.[0]?.content?.parts || [];
     const functionCalls = candidateParts.filter(p => p.functionCall);
     const textPart = candidateParts.find(p => typeof p.text === 'string');
@@ -2491,7 +2585,7 @@ async function runGeminiToolLoop(requestBody, keyObj, enableMemoryTool, githubCt
 
 // Resumes a paused tool loop after the user confirms or cancels a write action.
 // `approved` = true executes the write via GitHub API; false reports the denial to Gemini.
-async function resumeGeminiToolLoop(pending, approved) {
+async function resumeGeminiToolLoop(pending, approved, onTextChunk) {
   const { requestBody, keyObj, enableMemoryTool, githubCtx, candidateParts, functionCalls, writeCallName, writeCallArgs } = pending;
 
   const responseParts = [];
@@ -2520,7 +2614,7 @@ async function resumeGeminiToolLoop(pending, approved) {
   requestBody.contents.push({ role: 'model', parts: candidateParts });
   requestBody.contents.push({ role: 'user', parts: responseParts });
 
-  const result = await runGeminiToolLoop(requestBody, keyObj, enableMemoryTool, githubCtx);
+  const result = await runGeminiToolLoop(requestBody, keyObj, enableMemoryTool, githubCtx, onTextChunk);
   if (result.status === 'pending_confirmation') return { pendingConfirmation: result.pendingConfirmation };
   if (result.status === 'error' || result.status === 'key_exhausted') throw result.error || new Error('Request failed after confirmation');
   return result.finalText;
@@ -2694,14 +2788,24 @@ function renderMessages() {
     const progressChipHtml = currentToolProgress
       ? `<div class="tool-progress-chip"><span class="tool-progress-chip-spinner"></span><span>${escapeHtml(currentToolProgress)}</span></div>`
       : '';
-    html += `
-      <div class="message-row assistant">
-        <div class="bubble assistant">
-          <span class="codspire-loading-mark"><svg width="750" height="750" viewBox="0 0 750 750" xmlns="http://www.w3.org/2000/svg"><g transform-origin="354.8 416.1px">  <path class="petal petal-0" d="M 365.0,424.0 L 370.0,438.0 L 374.0,464.0 L 375.0,528.0 L 378.0,550.0 L 387.0,578.0 L 394.0,591.0 L 408.0,610.0 L 424.0,626.0 L 441.0,639.0 L 451.0,645.0 L 481.0,659.0 L 501.0,665.0 L 522.0,669.0 L 530.0,669.0 L 531.0,670.0 L 570.0,669.0 L 555.0,653.0 L 540.0,632.0 L 524.0,605.0 L 502.0,559.0 L 488.0,537.0 L 476.0,522.0 L 460.0,506.0 L 420.0,475.0 L 385.0,440.0 Z" fill="#1339C7"/>  <path class="petal petal-1" d="M 356.0,426.0 L 346.0,449.0 L 337.0,463.0 L 307.0,499.0 L 296.0,515.0 L 290.0,527.0 L 287.0,539.0 L 287.0,545.0 L 286.0,546.0 L 287.0,564.0 L 288.0,565.0 L 288.0,570.0 L 290.0,578.0 L 297.0,596.0 L 310.0,619.0 L 322.0,634.0 L 339.0,651.0 L 356.0,664.0 L 374.0,675.0 L 376.0,675.0 L 380.0,678.0 L 382.0,678.0 L 397.0,685.0 L 382.0,657.0 L 377.0,642.0 L 375.0,639.0 L 369.0,620.0 L 368.0,613.0 L 366.0,609.0 L 366.0,605.0 L 362.0,589.0 L 362.0,584.0 L 361.0,583.0 L 360.0,566.0 L 359.0,565.0 L 359.0,546.0 L 358.0,545.0 L 358.0,530.0 L 359.0,529.0 L 358.0,525.0 L 359.0,524.0 L 360.0,487.0 L 361.0,486.0 L 361.0,463.0 L 360.0,462.0 L 359.0,441.0 L 358.0,440.0 Z" fill="#1339C7"/>  <path class="petal petal-2" d="M 343.0,429.0 L 318.0,439.0 L 288.0,445.0 L 271.0,446.0 L 270.0,447.0 L 256.0,447.0 L 255.0,448.0 L 213.0,449.0 L 196.0,452.0 L 166.0,462.0 L 146.0,474.0 L 136.0,482.0 L 119.0,500.0 L 109.0,515.0 L 100.0,533.0 L 94.0,550.0 L 89.0,573.0 L 88.0,590.0 L 87.0,591.0 L 88.0,616.0 L 92.0,610.0 L 107.0,595.0 L 127.0,579.0 L 142.0,569.0 L 181.0,549.0 L 234.0,529.0 L 254.0,519.0 L 278.0,504.0 L 298.0,488.0 L 315.0,471.0 L 328.0,455.0 Z M 337.0,420.0 L 336.0,419.0 L 331.0,419.0 L 330.0,418.0 L 326.0,418.0 L 325.0,417.0 L 321.0,417.0 L 320.0,416.0 L 309.0,414.0 L 289.0,407.0 L 269.0,398.0 L 264.0,397.0 L 259.0,394.0 L 240.0,388.0 L 236.0,388.0 L 231.0,386.0 L 222.0,386.0 L 221.0,385.0 L 195.0,387.0 L 191.0,389.0 L 188.0,389.0 L 175.0,393.0 L 164.0,398.0 L 149.0,407.0 L 134.0,419.0 L 121.0,432.0 L 106.0,452.0 L 96.0,470.0 L 96.0,472.0 L 91.0,482.0 L 90.0,487.0 L 105.0,475.0 L 126.0,462.0 L 153.0,450.0 L 174.0,443.0 L 177.0,443.0 L 186.0,440.0 L 190.0,440.0 L 191.0,439.0 L 211.0,437.0 L 212.0,436.0 L 224.0,436.0 L 225.0,435.0 L 260.0,435.0 L 261.0,434.0 L 276.0,434.0 L 277.0,433.0 L 294.0,432.0 L 295.0,431.0 L 300.0,431.0 L 301.0,430.0 L 314.0,428.0 Z" fill="#1339C7"/>  <path class="petal petal-3" d="M 86.0,241.0 L 111.0,255.0 L 129.0,269.0 L 150.0,290.0 L 179.0,325.0 L 199.0,345.0 L 217.0,359.0 L 246.0,376.0 L 274.0,389.0 L 310.0,402.0 L 338.0,409.0 L 325.0,384.0 L 309.0,327.0 L 299.0,307.0 L 285.0,288.0 L 269.0,272.0 L 256.0,262.0 L 245.0,255.0 L 221.0,244.0 L 197.0,237.0 L 179.0,235.0 L 178.0,234.0 L 138.0,233.0 L 137.0,234.0 L 116.0,235.0 Z" fill="#1339C7"/>  <path class="petal petal-4" d="M 357.0,66.0 L 356.0,66.0 L 358.0,68.0 L 361.0,80.0 L 363.0,96.0 L 363.0,122.0 L 361.0,141.0 L 353.0,176.0 L 340.0,211.0 L 328.0,250.0 L 322.0,291.0 L 322.0,316.0 L 326.0,344.0 L 334.0,372.0 L 344.0,395.0 L 348.0,372.0 L 355.0,352.0 L 369.0,328.0 L 398.0,294.0 L 413.0,273.0 L 425.0,246.0 L 430.0,220.0 L 430.0,200.0 L 427.0,181.0 L 415.0,146.0 L 402.0,122.0 L 387.0,100.0 L 368.0,77.0 Z M 457.0,202.0 L 456.0,204.0 L 456.0,208.0 L 455.0,209.0 L 455.0,213.0 L 454.0,214.0 L 454.0,217.0 L 452.0,222.0 L 452.0,225.0 L 451.0,226.0 L 447.0,240.0 L 435.0,265.0 L 422.0,284.0 L 392.0,318.0 L 374.0,343.0 L 361.0,371.0 L 360.0,377.0 L 357.0,385.0 L 357.0,388.0 L 356.0,389.0 L 356.0,392.0 L 355.0,393.0 L 355.0,396.0 L 358.0,393.0 L 367.0,388.0 L 369.0,386.0 L 374.0,384.0 L 376.0,382.0 L 382.0,379.0 L 384.0,379.0 L 388.0,376.0 L 390.0,376.0 L 397.0,372.0 L 399.0,372.0 L 430.0,356.0 L 440.0,349.0 L 450.0,339.0 L 455.0,332.0 L 461.0,320.0 L 461.0,318.0 L 464.0,311.0 L 464.0,308.0 L 466.0,303.0 L 466.0,299.0 L 467.0,298.0 L 468.0,282.0 L 469.0,281.0 L 469.0,264.0 L 468.0,263.0 L 467.0,242.0 L 466.0,241.0 L 466.0,237.0 L 465.0,236.0 L 464.0,226.0 L 463.0,225.0 L 461.0,214.0 L 460.0,213.0 Z" fill="#1339C7"/>  <path class="petal petal-5" d="M 664.0,316.0 L 648.0,323.0 L 620.0,329.0 L 612.0,329.0 L 611.0,330.0 L 529.0,330.0 L 505.0,334.0 L 490.0,338.0 L 460.0,351.0 L 421.0,374.0 L 387.0,391.0 L 368.0,402.0 L 398.0,402.0 L 399.0,403.0 L 409.0,403.0 L 422.0,405.0 L 452.0,412.0 L 493.0,426.0 L 514.0,430.0 L 539.0,430.0 L 562.0,425.0 L 577.0,419.0 L 596.0,408.0 L 611.0,396.0 L 624.0,383.0 L 637.0,367.0 L 647.0,352.0 L 656.0,336.0 Z M 369.0,415.0 L 371.0,417.0 L 373.0,417.0 L 378.0,421.0 L 381.0,422.0 L 384.0,425.0 L 389.0,428.0 L 396.0,435.0 L 397.0,435.0 L 419.0,458.0 L 420.0,458.0 L 427.0,465.0 L 428.0,465.0 L 435.0,471.0 L 441.0,475.0 L 453.0,481.0 L 455.0,481.0 L 462.0,484.0 L 465.0,484.0 L 466.0,485.0 L 471.0,485.0 L 472.0,486.0 L 497.0,486.0 L 498.0,485.0 L 503.0,485.0 L 504.0,484.0 L 511.0,483.0 L 512.0,482.0 L 523.0,479.0 L 546.0,468.0 L 548.0,466.0 L 551.0,465.0 L 563.0,457.0 L 572.0,449.0 L 573.0,449.0 L 573.0,448.0 L 569.0,448.0 L 568.0,449.0 L 560.0,449.0 L 559.0,450.0 L 531.0,450.0 L 530.0,449.0 L 523.0,449.0 L 522.0,448.0 L 513.0,447.0 L 512.0,446.0 L 501.0,444.0 L 494.0,441.0 L 491.0,441.0 L 488.0,439.0 L 483.0,438.0 L 480.0,436.0 L 478.0,436.0 L 475.0,434.0 L 470.0,433.0 L 462.0,429.0 L 460.0,429.0 L 459.0,428.0 L 457.0,428.0 L 456.0,427.0 L 454.0,427.0 L 444.0,423.0 L 441.0,423.0 L 437.0,421.0 L 426.0,419.0 L 425.0,418.0 L 420.0,418.0 L 419.0,417.0 L 414.0,417.0 L 413.0,416.0 L 407.0,416.0 L 406.0,415.0 L 393.0,415.0 L 392.0,414.0 L 378.0,414.0 L 377.0,415.0 Z" fill="#1339C7"/></g></svg></span>
-          ${progressChipHtml}
+    if (streamingText) {
+      // Text has started arriving from the model — show it live, Claude/ChatGPT
+      // style, with a blinking cursor at the end instead of the flower spinner.
+      html += `
+        <div class="message-row assistant">
+          <div class="bubble assistant">${renderMessageContent(streamingText)}<span class="stream-cursor">▍</span></div>
         </div>
-      </div>
-    `;
+      `;
+    } else {
+      html += `
+        <div class="message-row assistant">
+          <div class="bubble assistant">
+            <span class="codspire-loading-mark"><svg width="750" height="750" viewBox="0 0 750 750" xmlns="http://www.w3.org/2000/svg"><g transform-origin="354.8 416.1px">  <path class="petal petal-0" d="M 365.0,424.0 L 370.0,438.0 L 374.0,464.0 L 375.0,528.0 L 378.0,550.0 L 387.0,578.0 L 394.0,591.0 L 408.0,610.0 L 424.0,626.0 L 441.0,639.0 L 451.0,645.0 L 481.0,659.0 L 501.0,665.0 L 522.0,669.0 L 530.0,669.0 L 531.0,670.0 L 570.0,669.0 L 555.0,653.0 L 540.0,632.0 L 524.0,605.0 L 502.0,559.0 L 488.0,537.0 L 476.0,522.0 L 460.0,506.0 L 420.0,475.0 L 385.0,440.0 Z" fill="#1339C7"/>  <path class="petal petal-1" d="M 356.0,426.0 L 346.0,449.0 L 337.0,463.0 L 307.0,499.0 L 296.0,515.0 L 290.0,527.0 L 287.0,539.0 L 287.0,545.0 L 286.0,546.0 L 287.0,564.0 L 288.0,565.0 L 288.0,570.0 L 290.0,578.0 L 297.0,596.0 L 310.0,619.0 L 322.0,634.0 L 339.0,651.0 L 356.0,664.0 L 374.0,675.0 L 376.0,675.0 L 380.0,678.0 L 382.0,678.0 L 397.0,685.0 L 382.0,657.0 L 377.0,642.0 L 375.0,639.0 L 369.0,620.0 L 368.0,613.0 L 366.0,609.0 L 366.0,605.0 L 362.0,589.0 L 362.0,584.0 L 361.0,583.0 L 360.0,566.0 L 359.0,565.0 L 359.0,546.0 L 358.0,545.0 L 358.0,530.0 L 359.0,529.0 L 358.0,525.0 L 359.0,524.0 L 360.0,487.0 L 361.0,486.0 L 361.0,463.0 L 360.0,462.0 L 359.0,441.0 L 358.0,440.0 Z" fill="#1339C7"/>  <path class="petal petal-2" d="M 343.0,429.0 L 318.0,439.0 L 288.0,445.0 L 271.0,446.0 L 270.0,447.0 L 256.0,447.0 L 255.0,448.0 L 213.0,449.0 L 196.0,452.0 L 166.0,462.0 L 146.0,474.0 L 136.0,482.0 L 119.0,500.0 L 109.0,515.0 L 100.0,533.0 L 94.0,550.0 L 89.0,573.0 L 88.0,590.0 L 87.0,591.0 L 88.0,616.0 L 92.0,610.0 L 107.0,595.0 L 127.0,579.0 L 142.0,569.0 L 181.0,549.0 L 234.0,529.0 L 254.0,519.0 L 278.0,504.0 L 298.0,488.0 L 315.0,471.0 L 328.0,455.0 Z M 337.0,420.0 L 336.0,419.0 L 331.0,419.0 L 330.0,418.0 L 326.0,418.0 L 325.0,417.0 L 321.0,417.0 L 320.0,416.0 L 309.0,414.0 L 289.0,407.0 L 269.0,398.0 L 264.0,397.0 L 259.0,394.0 L 240.0,388.0 L 236.0,388.0 L 231.0,386.0 L 222.0,386.0 L 221.0,385.0 L 195.0,387.0 L 191.0,389.0 L 188.0,389.0 L 175.0,393.0 L 164.0,398.0 L 149.0,407.0 L 134.0,419.0 L 121.0,432.0 L 106.0,452.0 L 96.0,470.0 L 96.0,472.0 L 91.0,482.0 L 90.0,487.0 L 105.0,475.0 L 126.0,462.0 L 153.0,450.0 L 174.0,443.0 L 177.0,443.0 L 186.0,440.0 L 190.0,440.0 L 191.0,439.0 L 211.0,437.0 L 212.0,436.0 L 224.0,436.0 L 225.0,435.0 L 260.0,435.0 L 261.0,434.0 L 276.0,434.0 L 277.0,433.0 L 294.0,432.0 L 295.0,431.0 L 300.0,431.0 L 301.0,430.0 L 314.0,428.0 Z" fill="#1339C7"/>  <path class="petal petal-3" d="M 86.0,241.0 L 111.0,255.0 L 129.0,269.0 L 150.0,290.0 L 179.0,325.0 L 199.0,345.0 L 217.0,359.0 L 246.0,376.0 L 274.0,389.0 L 310.0,402.0 L 338.0,409.0 L 325.0,384.0 L 309.0,327.0 L 299.0,307.0 L 285.0,288.0 L 269.0,272.0 L 256.0,262.0 L 245.0,255.0 L 221.0,244.0 L 197.0,237.0 L 179.0,235.0 L 178.0,234.0 L 138.0,233.0 L 137.0,234.0 L 116.0,235.0 Z" fill="#1339C7"/>  <path class="petal petal-4" d="M 357.0,66.0 L 356.0,66.0 L 358.0,68.0 L 361.0,80.0 L 363.0,96.0 L 363.0,122.0 L 361.0,141.0 L 353.0,176.0 L 340.0,211.0 L 328.0,250.0 L 322.0,291.0 L 322.0,316.0 L 326.0,344.0 L 334.0,372.0 L 344.0,395.0 L 348.0,372.0 L 355.0,352.0 L 369.0,328.0 L 398.0,294.0 L 413.0,273.0 L 425.0,246.0 L 430.0,220.0 L 430.0,200.0 L 427.0,181.0 L 415.0,146.0 L 402.0,122.0 L 387.0,100.0 L 368.0,77.0 Z M 457.0,202.0 L 456.0,204.0 L 456.0,208.0 L 455.0,209.0 L 455.0,213.0 L 454.0,214.0 L 454.0,217.0 L 452.0,222.0 L 452.0,225.0 L 451.0,226.0 L 447.0,240.0 L 435.0,265.0 L 422.0,284.0 L 392.0,318.0 L 374.0,343.0 L 361.0,371.0 L 360.0,377.0 L 357.0,385.0 L 357.0,388.0 L 356.0,389.0 L 356.0,392.0 L 355.0,393.0 L 355.0,396.0 L 358.0,393.0 L 367.0,388.0 L 369.0,386.0 L 374.0,384.0 L 376.0,382.0 L 382.0,379.0 L 384.0,379.0 L 388.0,376.0 L 390.0,376.0 L 397.0,372.0 L 399.0,372.0 L 430.0,356.0 L 440.0,349.0 L 450.0,339.0 L 455.0,332.0 L 461.0,320.0 L 461.0,318.0 L 464.0,311.0 L 464.0,308.0 L 466.0,303.0 L 466.0,299.0 L 467.0,298.0 L 468.0,282.0 L 469.0,281.0 L 469.0,264.0 L 468.0,263.0 L 467.0,242.0 L 466.0,241.0 L 466.0,237.0 L 465.0,236.0 L 464.0,226.0 L 463.0,225.0 L 461.0,214.0 L 460.0,213.0 Z" fill="#1339C7"/>  <path class="petal petal-5" d="M 664.0,316.0 L 648.0,323.0 L 620.0,329.0 L 612.0,329.0 L 611.0,330.0 L 529.0,330.0 L 505.0,334.0 L 490.0,338.0 L 460.0,351.0 L 421.0,374.0 L 387.0,391.0 L 368.0,402.0 L 398.0,402.0 L 399.0,403.0 L 409.0,403.0 L 422.0,405.0 L 452.0,412.0 L 493.0,426.0 L 514.0,430.0 L 539.0,430.0 L 562.0,425.0 L 577.0,419.0 L 596.0,408.0 L 611.0,396.0 L 624.0,383.0 L 637.0,367.0 L 647.0,352.0 L 656.0,336.0 Z M 369.0,415.0 L 371.0,417.0 L 373.0,417.0 L 378.0,421.0 L 381.0,422.0 L 384.0,425.0 L 389.0,428.0 L 396.0,435.0 L 397.0,435.0 L 419.0,458.0 L 420.0,458.0 L 427.0,465.0 L 428.0,465.0 L 435.0,471.0 L 441.0,475.0 L 453.0,481.0 L 455.0,481.0 L 462.0,484.0 L 465.0,484.0 L 466.0,485.0 L 471.0,485.0 L 472.0,486.0 L 497.0,486.0 L 498.0,485.0 L 503.0,485.0 L 504.0,484.0 L 511.0,483.0 L 512.0,482.0 L 523.0,479.0 L 546.0,468.0 L 548.0,466.0 L 551.0,465.0 L 563.0,457.0 L 572.0,449.0 L 573.0,449.0 L 573.0,448.0 L 569.0,448.0 L 568.0,449.0 L 560.0,449.0 L 559.0,450.0 L 531.0,450.0 L 530.0,449.0 L 523.0,449.0 L 522.0,448.0 L 513.0,447.0 L 512.0,446.0 L 501.0,444.0 L 494.0,441.0 L 491.0,441.0 L 488.0,439.0 L 483.0,438.0 L 480.0,436.0 L 478.0,436.0 L 475.0,434.0 L 470.0,433.0 L 462.0,429.0 L 460.0,429.0 L 459.0,428.0 L 457.0,428.0 L 456.0,427.0 L 454.0,427.0 L 444.0,423.0 L 441.0,423.0 L 437.0,421.0 L 426.0,419.0 L 425.0,418.0 L 420.0,418.0 L 419.0,417.0 L 414.0,417.0 L 413.0,416.0 L 407.0,416.0 L 406.0,415.0 L 393.0,415.0 L 392.0,414.0 L 378.0,414.0 L 377.0,415.0 Z" fill="#1339C7"/></g></svg></span>
+            ${progressChipHtml}
+          </div>
+        </div>
+      `;
+    }
   }
 
   container.innerHTML = html;
@@ -2982,6 +3086,7 @@ function handleChatMenuDelete() {
 }
 
 let pendingGithubConfirmation = null; // { pending, chatId, isNewChat, trimmed }
+let streamingText = ''; // live-updating text of the assistant bubble currently being streamed in
 
 async function handleSend() {
   const textarea = document.getElementById('inputTextarea');
@@ -3018,20 +3123,25 @@ async function handleSend() {
     currentChatId = chatId;
   }
 
+  streamingText = '';
   try {
     const githubData = await loadGithubConnector();
     const githubCtx = (githubData && githubData.login && githubData.token) ? { token: githubData.token, login: githubData.login } : null;
-    const result = await callGeminiWithRotation(messages, handleKeyUsage, buildSystemPrompt(githubCtx ? githubCtx.login : null), { enableMemoryTool: true, githubCtx });
+    const onTextChunk = (text) => { streamingText = text; renderMessages(); };
+    const result = await callGeminiWithRotation(messages, handleKeyUsage, buildSystemPrompt(githubCtx ? githubCtx.login : null), { enableMemoryTool: true, githubCtx, onTextChunk });
 
     if (result && typeof result === 'object' && result.pendingConfirmation) {
+      streamingText = '';
       presentPendingConfirmation(result.pendingConfirmation, chatId, isNewChat, trimmed);
       return;
     }
 
+    streamingText = '';
     await finishAssistantTurn(result, chatId, isNewChat, trimmed);
   } catch (err) {
     console.error(err);
     isLoading = false;
+    streamingText = '';
     if (err.message === 'ALL_KEYS_EXHAUSTED' || err.message === 'ALL_KEYS_FAILED') {
       showError(t('error.allKeysExhausted'));
     } else if (err.message === 'NO_KEYS') {
@@ -3110,17 +3220,22 @@ async function handleGithubConfirmationDecision(approved) {
   }
   renderMessages();
 
+  streamingText = '';
   try {
-    const result = await resumeGeminiToolLoop(pending, approved);
+    const onTextChunk = (text) => { streamingText = text; renderMessages(); };
+    const result = await resumeGeminiToolLoop(pending, approved, onTextChunk);
     currentToolProgress = null;
     if (result && typeof result === 'object' && result.pendingConfirmation) {
+      streamingText = '';
       presentPendingConfirmation(result.pendingConfirmation, chatId, isNewChat, trimmed);
       return;
     }
+    streamingText = '';
     await finishAssistantTurn(result, chatId, isNewChat, trimmed);
   } catch (err) {
     console.error(err);
     isLoading = false;
+    streamingText = '';
     currentToolProgress = null;
     showError(t('error.modelUnreachable'));
     renderMessages();
