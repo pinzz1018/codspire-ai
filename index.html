@@ -629,6 +629,46 @@
   .connector-error-text { font-size: 12.5px; color: #c0392b; display: none; }
   .connector-error-text.visible { display: block; }
 
+  .fullscreen-page-header-action {
+    margin-left: auto; background: none; border: none; cursor: pointer; padding: 8px;
+    display: flex; align-items: center; justify-content: center; color: var(--ink);
+    border-radius: 50%; flex-shrink: 0;
+  }
+  .fullscreen-page-header-action:active { background: var(--cream-darker); }
+
+  .connectors-empty {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; gap: 14px; padding: 60px 24px; height: 100%;
+  }
+  .connectors-empty-icon {
+    width: 56px; height: 56px; border-radius: 50%; background: var(--cream-dark);
+    display: flex; align-items: center; justify-content: center; color: var(--ink-soft);
+  }
+  .connectors-empty-title { font-size: 16px; font-weight: 700; color: var(--ink); }
+  .connectors-empty-sub {
+    font-size: 13.5px; color: var(--ink-soft); line-height: 1.5; max-width: 260px;
+  }
+  .connectors-empty-btn {
+    margin-top: 4px; border: none; border-radius: 10px; padding: 11px 18px; font-size: 13.5px;
+    font-weight: 600; cursor: pointer; font-family: inherit; background: var(--ink); color: #fff;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .connector-picker-row {
+    display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
+    border: 1px solid var(--border); background: #fff; border-radius: 14px;
+    padding: 14px; cursor: pointer; margin-bottom: 12px;
+  }
+  .connector-picker-row:active { background: var(--cream-darker); }
+  .connector-picker-row-icon {
+    width: 34px; height: 34px; border-radius: 50%; background: var(--cream-dark);
+    display: flex; align-items: center; justify-content: center; color: var(--ink); flex-shrink: 0;
+  }
+  .connector-picker-row-text { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+  .connector-picker-row-title { font-size: 15px; font-weight: 700; color: var(--ink); }
+  .connector-picker-row-sub { font-size: 12.5px; color: var(--ink-soft); }
+  .connector-picker-row-chevron { color: var(--ink-soft); flex-shrink: 0; }
+
   /* GitHub write-action confirmation modal */
   .gh-confirm-overlay {
     position: fixed; inset: 0; background: rgba(43,36,29,0.4); z-index: 60;
@@ -661,6 +701,49 @@
   }
   .gh-confirm-btn-cancel { background: var(--cream-darker); color: var(--ink); }
   .gh-confirm-btn-confirm { background: var(--ink); color: #fff; }
+  .gh-confirm-card.is-destructive .gh-confirm-title { color: #c0392b; }
+  .gh-confirm-card.is-destructive .gh-confirm-icon { color: #c0392b; background: rgba(192, 57, 43, 0.1); }
+  .gh-confirm-card.is-destructive .gh-confirm-btn-confirm { background: #c0392b; }
+
+  /* Attached file preview chips (above textarea) */
+  .attach-preview-row {
+    display: none; gap: 8px; padding: 2px 2px 8px 2px; overflow-x: auto;
+  }
+  .attach-preview-row.visible { display: flex; }
+  .attach-preview-chip {
+    position: relative; flex-shrink: 0; width: 92px; height: 92px;
+    border: 1px solid var(--border); border-radius: 14px; background: #fff;
+    display: flex; flex-direction: column; justify-content: space-between;
+    padding: 8px; overflow: hidden;
+  }
+  .attach-preview-chip.is-image { padding: 0; }
+  .attach-preview-chip img { width: 100%; height: 100%; object-fit: cover; }
+  .attach-preview-badge {
+    align-self: flex-start; font-size: 10px; font-weight: 700; letter-spacing: 0.3px;
+    color: var(--ink-soft); background: var(--cream-dark); border-radius: 6px; padding: 2px 6px;
+  }
+  .attach-preview-name {
+    font-size: 11px; font-weight: 600; color: var(--ink); line-height: 1.25;
+    overflow: hidden; text-overflow: ellipsis; display: -webkit-box;
+    -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  }
+  .attach-preview-remove {
+    position: absolute; top: 5px; right: 5px; width: 20px; height: 20px; border-radius: 50%;
+    background: rgba(0,0,0,0.65); color: #fff; border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; font-size: 12px; line-height: 1;
+    z-index: 2;
+  }
+  .attach-preview-loading { font-size: 10px; color: var(--ink-soft); }
+
+  .bubble-attachments { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+  .bubble-attach-chip {
+    display: flex; align-items: center; gap: 6px; padding: 5px 9px;
+    background: rgba(0,0,0,0.08); border-radius: 10px; font-size: 11.5px; font-weight: 600;
+    max-width: 160px;
+  }
+  .bubble.user .bubble-attach-chip { background: rgba(255,255,255,0.18); }
+  .bubble-attach-chip img { width: 18px; height: 18px; border-radius: 4px; object-fit: cover; flex-shrink: 0; }
+  .bubble-attach-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
   .language-page-list { display: flex; flex-direction: column; gap: 8px; }
   .language-page-item {
@@ -796,6 +879,7 @@
 
     <div class="input-area">
       <div class="input-box">
+        <div class="attach-preview-row" id="attachPreviewRow"></div>
         <textarea class="textarea" id="inputTextarea" rows="1" placeholder="Chat with Codspire…"></textarea>
         <div class="input-toolbar">
           <button class="toolbar-icon-btn" id="attachBtn" aria-label="Attach file">+</button>
@@ -1009,9 +1093,24 @@
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
       </button>
       <span class="fullscreen-page-title" data-i18n="attach.connectors">Connectors</span>
+      <button class="fullscreen-page-header-action" id="openConnectorsAddPageBtn" aria-label="Add connector">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2v4"/><path d="M15 2v4"/><path d="M6 10h12l-1 4a5 5 0 0 1-5 4h0a5 5 0 0 1-5-4l-1-4Z"/><path d="M12 18v4"/></svg>
+      </button>
     </div>
-    <div class="fullscreen-page-body">
-      <div class="connector-card">
+    <div class="fullscreen-page-body" id="connectorsPageBody">
+      <div class="connectors-empty" id="connectorsEmptyState">
+        <div class="connectors-empty-icon">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2v4"/><path d="M15 2v4"/><path d="M6 10h12l-1 4a5 5 0 0 1-5 4h0a5 5 0 0 1-5-4l-1-4Z"/><path d="M12 18v4"/></svg>
+        </div>
+        <div class="connectors-empty-title" data-i18n="connectors.emptyTitle">No connectors yet</div>
+        <div class="connectors-empty-sub" data-i18n="connectors.emptySub">Connect a service so Codspire can work with your repos and files.</div>
+        <button class="connectors-empty-btn" id="connectorsEmptyAddBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2v4"/><path d="M15 2v4"/><path d="M6 10h12l-1 4a5 5 0 0 1-5 4h0a5 5 0 0 1-5-4l-1-4Z"/><path d="M12 18v4"/></svg>
+          <span data-i18n="connectors.addConnector">Add connector</span>
+        </button>
+      </div>
+
+      <div class="connector-card" id="githubConnectorCard" style="display:none;">
         <div class="connector-card-header">
           <div class="connector-card-icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.69-1.28-1.69-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.03 1.75 2.7 1.25 3.36.96.1-.75.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.15 1.18a10.9 10.9 0 0 1 5.74 0c2.19-1.49 3.15-1.18 3.15-1.18.62 1.58.23 2.75.11 3.04.74.8 1.18 1.83 1.18 3.09 0 4.41-2.7 5.38-5.27 5.67.42.36.78 1.07.78 2.15 0 1.56-.01 2.81-.01 3.19 0 .31.21.67.8.56A10.51 10.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
@@ -1023,17 +1122,6 @@
           <span class="connector-status-badge" id="githubConnectedBadge" style="display:none;" data-i18n="connectors.connected">Connected</span>
         </div>
 
-        <div id="githubDisconnectedView">
-          <div class="connector-card-desc" id="githubDesc"></div>
-          <div class="connector-form">
-            <input type="password" class="connector-input" id="githubTokenInput" data-i18n-placeholder="connectors.tokenPlaceholder" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off" autocapitalize="off" spellcheck="false">
-            <span class="connector-error-text" id="githubTokenError"></span>
-            <div class="connector-btn-row">
-              <button class="connector-btn connector-btn-primary" id="githubConnectBtn" data-i18n="connectors.connect">Connect</button>
-            </div>
-          </div>
-        </div>
-
         <div id="githubConnectedView" style="display:none;">
           <div class="connector-connected-row">
             <img class="connector-connected-avatar" id="githubAvatar" src="" alt="">
@@ -1041,6 +1129,39 @@
           </div>
           <div class="connector-btn-row" style="margin-top:10px;">
             <button class="connector-btn connector-btn-danger" id="githubDisconnectBtn" data-i18n="connectors.disconnect">Disconnect</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="fullscreen-page" id="connectorsAddPage">
+    <div class="fullscreen-page-header">
+      <button class="fullscreen-page-back" id="closeConnectorsAddPageBtn" aria-label="Back">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <span class="fullscreen-page-title" data-i18n="connectors.addConnector">Add connector</span>
+    </div>
+    <div class="fullscreen-page-body" id="connectorsAddPageBody">
+      <button class="connector-picker-row" id="githubPickerRow">
+        <div class="connector-picker-row-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.69-1.28-1.69-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.03 1.75 2.7 1.25 3.36.96.1-.75.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.15 1.18a10.9 10.9 0 0 1 5.74 0c2.19-1.49 3.15-1.18 3.15-1.18.62 1.58.23 2.75.11 3.04.74.8 1.18 1.83 1.18 3.09 0 4.41-2.7 5.38-5.27 5.67.42.36.78 1.07.78 2.15 0 1.56-.01 2.81-.01 3.19 0 .31.21.67.8.56A10.51 10.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
+        </div>
+        <div class="connector-picker-row-text">
+          <div class="connector-picker-row-title">GitHub</div>
+          <div class="connector-picker-row-sub" data-i18n="connectors.githubSub">Baca repo &amp; file</div>
+        </div>
+        <span class="connector-status-badge" id="githubPickerConnectedBadge" style="display:none;" data-i18n="connectors.connected">Connected</span>
+        <svg class="connector-picker-row-chevron" id="githubPickerChevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+      </button>
+
+      <div class="connector-card" id="githubSetupCard" style="display:none;">
+        <div class="connector-card-desc" id="githubDesc"></div>
+        <div class="connector-form">
+          <input type="password" class="connector-input" id="githubTokenInput" data-i18n-placeholder="connectors.tokenPlaceholder" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off" autocapitalize="off" spellcheck="false">
+          <span class="connector-error-text" id="githubTokenError"></span>
+          <div class="connector-btn-row">
+            <button class="connector-btn connector-btn-primary" id="githubConnectBtn" data-i18n="connectors.connect">Connect</button>
           </div>
         </div>
       </div>
@@ -1090,6 +1211,7 @@ let isTemporaryChat = false;
 let isLoading = false;
 let userMemory = { facts: [] };
 let currentUser = null; // { uid, email, displayName, photoURL } once signed in (firebase mode only)
+let pendingAttachments = []; // [{ id, name, mimeType, size, base64, isImage, loading }]
 
 // ============================================================
 // I18N (English / Indonesian)
@@ -1149,7 +1271,14 @@ const I18N_STRINGS = {
     'attach.toolAccess': 'Tool access',
     'attach.auto': 'Auto',
     'attach.connectors': 'Connectors',
+    'attach.tooLarge': '"{name}" is too large. Max file size is 10MB.',
+    'attach.readFailed': 'Couldn\u2019t read "{name}". Please try again.',
+    'attach.loading': 'Loading\u2026',
+    'attach.defaultPrompt': 'Take a look at this file.',
     'connectors.githubSub': 'Read repos & files',
+    'connectors.emptyTitle': 'No connectors yet',
+    'connectors.emptySub': 'Connect a service so Codspire can work with your repos and files.',
+    'connectors.addConnector': 'Add connector',
     'connectors.connected': 'Connected',
     'connectors.connect': 'Connect',
     'connectors.disconnect': 'Disconnect',
@@ -1168,6 +1297,27 @@ const I18N_STRINGS = {
     'connectors.metaRepo': 'Repo',
     'connectors.metaFile': 'File',
     'connectors.metaCommit': 'Commit message',
+    'connectors.confirmCreateRepoTitle': 'Create GitHub repo',
+    'connectors.confirmCreateRepoBody': 'Codspire wants to create a new repository. Review the details before approving.',
+    'connectors.confirmDeleteRepoTitle': 'Delete GitHub repo',
+    'connectors.confirmDeleteRepoBody': 'Codspire wants to permanently delete a repository. This cannot be undone.',
+    'connectors.confirmCreateBranchTitle': 'Create branch',
+    'connectors.confirmCreateBranchBody': 'Codspire wants to create a new branch. Review the details before approving.',
+    'connectors.confirmDeleteBranchTitle': 'Delete branch',
+    'connectors.confirmDeleteBranchBody': 'Codspire wants to delete a branch. This cannot be undone.',
+    'connectors.confirmMoveFileTitle': 'Rename/move file',
+    'connectors.confirmMoveFileBody': 'Codspire wants to rename or move a file. Review the details before approving.',
+    'connectors.confirmCreateIssueTitle': 'Create issue',
+    'connectors.confirmCreateIssueBody': 'Codspire wants to create a new issue. Review the details before approving.',
+    'connectors.metaVisibility': 'Visibility',
+    'connectors.private': 'Private',
+    'connectors.public': 'Public',
+    'connectors.metaNewBranch': 'New branch',
+    'connectors.metaFromBranch': 'From branch',
+    'connectors.metaBranch': 'Branch',
+    'connectors.metaFrom': 'From',
+    'connectors.metaTo': 'To',
+    'connectors.metaIssueTitle': 'Issue title',
     'settings.title': 'Settings',
     'settings.selectLanguage': 'Select language',
     'settings.langEnglish': 'English',
@@ -1238,7 +1388,14 @@ const I18N_STRINGS = {
     'attach.toolAccess': 'Akses alat',
     'attach.auto': 'Otomatis',
     'attach.connectors': 'Konektor',
+    'attach.tooLarge': '"{name}" terlalu besar. Ukuran maksimal file 10MB.',
+    'attach.readFailed': 'Gagal membaca "{name}". Coba lagi.',
+    'attach.loading': 'Memuat\u2026',
+    'attach.defaultPrompt': 'Lihat file ini.',
     'connectors.githubSub': 'Baca repo & file',
+    'connectors.emptyTitle': 'Belum ada konektor',
+    'connectors.emptySub': 'Hubungkan sebuah layanan supaya Codspire bisa bekerja dengan repo dan file kamu.',
+    'connectors.addConnector': 'Tambah konektor',
     'connectors.connected': 'Terhubung',
     'connectors.connect': 'Hubungkan',
     'connectors.disconnect': 'Putuskan',
@@ -1257,6 +1414,27 @@ const I18N_STRINGS = {
     'connectors.metaRepo': 'Repo',
     'connectors.metaFile': 'File',
     'connectors.metaCommit': 'Pesan commit',
+    'connectors.confirmCreateRepoTitle': 'Bikin repo GitHub',
+    'connectors.confirmCreateRepoBody': 'Codspire mau bikin repository baru. Cek dulu detailnya sebelum menyetujui.',
+    'connectors.confirmDeleteRepoTitle': 'Hapus repo GitHub',
+    'connectors.confirmDeleteRepoBody': 'Codspire mau menghapus repository secara permanen. Ini gak bisa dibatalin.',
+    'connectors.confirmCreateBranchTitle': 'Bikin branch',
+    'connectors.confirmCreateBranchBody': 'Codspire mau bikin branch baru. Cek dulu detailnya sebelum menyetujui.',
+    'connectors.confirmDeleteBranchTitle': 'Hapus branch',
+    'connectors.confirmDeleteBranchBody': 'Codspire mau menghapus branch. Ini gak bisa dibatalin.',
+    'connectors.confirmMoveFileTitle': 'Rename/pindah file',
+    'connectors.confirmMoveFileBody': 'Codspire mau rename atau pindahin file. Cek dulu detailnya sebelum menyetujui.',
+    'connectors.confirmCreateIssueTitle': 'Bikin issue',
+    'connectors.confirmCreateIssueBody': 'Codspire mau bikin issue baru. Cek dulu detailnya sebelum menyetujui.',
+    'connectors.metaVisibility': 'Visibilitas',
+    'connectors.private': 'Privat',
+    'connectors.public': 'Publik',
+    'connectors.metaNewBranch': 'Branch baru',
+    'connectors.metaFromBranch': 'Dari branch',
+    'connectors.metaBranch': 'Branch',
+    'connectors.metaFrom': 'Dari',
+    'connectors.metaTo': 'Ke',
+    'connectors.metaIssueTitle': 'Judul issue',
     'settings.title': 'Pengaturan',
     'settings.selectLanguage': 'Pilih bahasa',
     'settings.langEnglish': 'English',
@@ -1413,24 +1591,41 @@ async function deleteGithubConnector() {
 }
 
 async function refreshGithubConnectorUI() {
-  const disconnectedView = document.getElementById('githubDisconnectedView');
+  const emptyState = document.getElementById('connectorsEmptyState');
+  const githubCard = document.getElementById('githubConnectorCard');
   const connectedView = document.getElementById('githubConnectedView');
   const badge = document.getElementById('githubConnectedBadge');
+  const setupCard = document.getElementById('githubSetupCard');
+  const pickerBadge = document.getElementById('githubPickerConnectedBadge');
+  const pickerChevron = document.getElementById('githubPickerChevron');
   const errorEl = document.getElementById('githubTokenError');
   errorEl.classList.remove('visible');
   errorEl.textContent = '';
 
   const data = await loadGithubConnector();
   if (data && data.login) {
-    disconnectedView.style.display = 'none';
+    // Page 1: show the connected card, hide the empty state.
+    emptyState.style.display = 'none';
+    githubCard.style.display = '';
     connectedView.style.display = '';
     badge.style.display = '';
     document.getElementById('githubAvatar').src = data.avatarUrl || '';
     document.getElementById('githubUsername').textContent = '@' + data.login;
+
+    // Page 2: mark GitHub as connected, hide the setup form.
+    pickerBadge.style.display = '';
+    pickerChevron.style.display = 'none';
+    setupCard.style.display = 'none';
   } else {
-    disconnectedView.style.display = '';
+    // Page 1: nothing connected yet.
+    emptyState.style.display = '';
+    githubCard.style.display = 'none';
     connectedView.style.display = 'none';
     badge.style.display = 'none';
+
+    // Page 2: show the setup form.
+    pickerBadge.style.display = 'none';
+    pickerChevron.style.display = '';
     document.getElementById('githubTokenInput').value = '';
   }
 }
@@ -1484,22 +1679,40 @@ async function handleGithubDisconnect() {
   await refreshGithubConnectorUI();
 }
 
+const GH_CONFIRM_CONFIG = {
+  github_write_file: { titleKey: 'connectors.confirmWriteTitle', bodyKey: 'connectors.confirmWriteBody', destructive: false,
+    meta: a => [['connectors.metaRepo', a.repo], ['connectors.metaFile', a.path], ['connectors.metaCommit', a.commitMessage]] },
+  github_delete_file: { titleKey: 'connectors.confirmDeleteTitle', bodyKey: 'connectors.confirmDeleteBody', destructive: true,
+    meta: a => [['connectors.metaRepo', a.repo], ['connectors.metaFile', a.path], ['connectors.metaCommit', a.commitMessage]] },
+  github_create_repo: { titleKey: 'connectors.confirmCreateRepoTitle', bodyKey: 'connectors.confirmCreateRepoBody', destructive: false,
+    meta: a => [['connectors.metaRepo', a.name], ['connectors.metaVisibility', a.isPrivate ? t('connectors.private') : t('connectors.public')]] },
+  github_delete_repo: { titleKey: 'connectors.confirmDeleteRepoTitle', bodyKey: 'connectors.confirmDeleteRepoBody', destructive: true,
+    meta: a => [['connectors.metaRepo', a.repo]] },
+  github_create_branch: { titleKey: 'connectors.confirmCreateBranchTitle', bodyKey: 'connectors.confirmCreateBranchBody', destructive: false,
+    meta: a => [['connectors.metaRepo', a.repo], ['connectors.metaNewBranch', a.newBranch], ['connectors.metaFromBranch', a.fromBranch]] },
+  github_delete_branch: { titleKey: 'connectors.confirmDeleteBranchTitle', bodyKey: 'connectors.confirmDeleteBranchBody', destructive: true,
+    meta: a => [['connectors.metaRepo', a.repo], ['connectors.metaBranch', a.branch]] },
+  github_move_file: { titleKey: 'connectors.confirmMoveFileTitle', bodyKey: 'connectors.confirmMoveFileBody', destructive: false,
+    meta: a => [['connectors.metaRepo', a.repo], ['connectors.metaFrom', a.fromPath], ['connectors.metaTo', a.toPath], ['connectors.metaCommit', a.commitMessage]] },
+  github_create_issue: { titleKey: 'connectors.confirmCreateIssueTitle', bodyKey: 'connectors.confirmCreateIssueBody', destructive: false,
+    meta: a => [['connectors.metaRepo', a.repo], ['connectors.metaIssueTitle', a.title]] }
+};
+
 function showGithubConfirmSheet(pendingConfirmation) {
-  const isDelete = pendingConfirmation.writeCallName === 'github_delete_file';
+  const config = GH_CONFIRM_CONFIG[pendingConfirmation.writeCallName] || GH_CONFIRM_CONFIG.github_write_file;
   const args = pendingConfirmation.writeCallArgs || {};
-  document.getElementById('ghConfirmTitle').textContent = isDelete ? t('connectors.confirmDeleteTitle') : t('connectors.confirmWriteTitle');
-  document.getElementById('ghConfirmBody').textContent = isDelete ? t('connectors.confirmDeleteBody') : t('connectors.confirmWriteBody');
+  document.getElementById('ghConfirmTitle').textContent = t(config.titleKey);
+  document.getElementById('ghConfirmBody').textContent = t(config.bodyKey);
+  const card = document.querySelector('#ghConfirmOverlay .gh-confirm-card');
+  card.classList.toggle('is-destructive', !!config.destructive);
   const metaEl = document.getElementById('ghConfirmMeta');
   metaEl.innerHTML = '';
-  const addMetaRow = (labelKey, value) => {
-    if (!value) return;
+  for (const [labelKey, value] of config.meta(args)) {
+    if (!value) continue;
     const row = document.createElement('div');
     row.textContent = t(labelKey) + ': ' + value;
     metaEl.appendChild(row);
-  };
-  addMetaRow('connectors.metaRepo', args.repo);
-  addMetaRow('connectors.metaFile', args.path);
-  addMetaRow('connectors.metaCommit', args.commitMessage);
+  }
   document.getElementById('ghConfirmOverlay').classList.add('visible');
 }
 function hideGithubConfirmSheet() {
@@ -1732,10 +1945,125 @@ const GITHUB_TOOL_DECLARATIONS = [
       },
       required: ['repo', 'path', 'commitMessage']
     }
+  },
+  {
+    name: 'github_create_repo',
+    description: 'Create a new GitHub repository for the connected user. This is a WRITE action and will always be shown to the user as a confirmation request first.',
+    parameters: {
+      type: 'object',
+      properties: {
+        name: { type: 'string', description: 'Repository name.' },
+        description: { type: 'string', description: 'Short description of the repo.' },
+        isPrivate: { type: 'boolean', description: 'Whether the repo should be private. Defaults to false (public) if not specified.' }
+      },
+      required: ['name']
+    }
+  },
+  {
+    name: 'github_delete_repo',
+    description: 'Permanently delete a GitHub repository owned by the connected user. This is a highly destructive WRITE action and will always be shown to the user as a confirmation request first — never call this unless the user has clearly and explicitly asked to delete that specific repo.',
+    parameters: {
+      type: 'object',
+      properties: {
+        repo: { type: 'string', description: 'Repository name to delete.' }
+      },
+      required: ['repo']
+    }
+  },
+  {
+    name: 'github_list_branches',
+    description: 'List the branches of a repo. Read-only.',
+    parameters: {
+      type: 'object',
+      properties: { repo: { type: 'string', description: 'Repository name.' } },
+      required: ['repo']
+    }
+  },
+  {
+    name: 'github_create_branch',
+    description: 'Create a new branch in a repo, based off an existing branch (defaults to the repo\'s default branch). This is a WRITE action and will always be shown to the user as a confirmation request first.',
+    parameters: {
+      type: 'object',
+      properties: {
+        repo: { type: 'string', description: 'Repository name.' },
+        newBranch: { type: 'string', description: 'Name for the new branch.' },
+        fromBranch: { type: 'string', description: 'Branch to create the new branch from. If omitted, uses the repo default branch.' }
+      },
+      required: ['repo', 'newBranch']
+    }
+  },
+  {
+    name: 'github_delete_branch',
+    description: 'Delete a branch from a repo. This is a WRITE action and will always be shown to the user as a confirmation request first.',
+    parameters: {
+      type: 'object',
+      properties: {
+        repo: { type: 'string', description: 'Repository name.' },
+        branch: { type: 'string', description: 'Branch name to delete.' }
+      },
+      required: ['repo', 'branch']
+    }
+  },
+  {
+    name: 'github_list_commits',
+    description: 'List recent commits on a branch of a repo, useful for answering "what changed recently" type questions. Read-only.',
+    parameters: {
+      type: 'object',
+      properties: {
+        repo: { type: 'string', description: 'Repository name.' },
+        branch: { type: 'string', description: 'Branch to list commits from. If omitted, uses the repo default branch.' },
+        limit: { type: 'number', description: 'Max number of commits to return. Defaults to 10.' }
+      },
+      required: ['repo']
+    }
+  },
+  {
+    name: 'github_move_file',
+    description: 'Rename or move a file within a repo (copies content to the new path and deletes the old one), then commits and pushes. This is a WRITE action and will always be shown to the user as a confirmation request first.',
+    parameters: {
+      type: 'object',
+      properties: {
+        repo: { type: 'string', description: 'Repository name.' },
+        fromPath: { type: 'string', description: 'Current file path.' },
+        toPath: { type: 'string', description: 'New file path.' },
+        commitMessage: { type: 'string', description: 'Commit message describing the move/rename.' }
+      },
+      required: ['repo', 'fromPath', 'toPath', 'commitMessage']
+    }
+  },
+  {
+    name: 'github_list_issues',
+    description: 'List open issues on a repo. Read-only.',
+    parameters: {
+      type: 'object',
+      properties: { repo: { type: 'string', description: 'Repository name.' } },
+      required: ['repo']
+    }
+  },
+  {
+    name: 'github_create_issue',
+    description: 'Create a new issue on a repo. This is a WRITE action and will always be shown to the user as a confirmation request first.',
+    parameters: {
+      type: 'object',
+      properties: {
+        repo: { type: 'string', description: 'Repository name.' },
+        title: { type: 'string', description: 'Issue title.' },
+        body: { type: 'string', description: 'Issue body/description.' }
+      },
+      required: ['repo', 'title']
+    }
   }
 ];
-const GITHUB_WRITE_TOOL_NAMES = ['github_write_file', 'github_delete_file'];
-const GITHUB_READ_TOOL_NAMES = ['github_list_repos', 'github_list_files', 'github_read_file'];
+const GITHUB_WRITE_TOOL_NAMES = [
+  'github_write_file', 'github_delete_file',
+  'github_create_repo', 'github_delete_repo',
+  'github_create_branch', 'github_delete_branch',
+  'github_move_file', 'github_create_issue'
+];
+const GITHUB_READ_TOOL_NAMES = [
+  'github_list_repos', 'github_list_files', 'github_read_file',
+  'github_list_branches', 'github_list_commits', 'github_list_issues'
+];
 
 async function githubApiRequest(path, token, options) {
   const res = await fetch('https://api.github.com' + path, {
@@ -1780,6 +2108,45 @@ async function executeGithubReadTool(name, args, token, githubLogin) {
       if (Array.isArray(data) || data.type !== 'file') return { error: `"${path}" is not a file.` };
       const content = data.encoding === 'base64' ? decodeURIComponent(escape(atob(data.content.replace(/\n/g, '')))) : data.content;
       return { path, content, sha: data.sha, size: data.size };
+    }
+    if (name === 'github_list_branches') {
+      const owner = githubLogin;
+      const repo = args.repo;
+      const res = await githubApiRequest(`/repos/${owner}/${repo}/branches?per_page=100`, token);
+      if (!res.ok) return { error: `GitHub API error ${res.status}: could not list branches for ${repo}` };
+      const data = await res.json();
+      return { repo, branches: data.map(b => ({ name: b.name, protected: b.protected })) };
+    }
+    if (name === 'github_list_commits') {
+      const owner = githubLogin;
+      const repo = args.repo;
+      const limit = args.limit || 10;
+      let url = `/repos/${owner}/${repo}/commits?per_page=${limit}`;
+      if (args.branch) url += `&sha=${encodeURIComponent(args.branch)}`;
+      const res = await githubApiRequest(url, token);
+      if (!res.ok) return { error: `GitHub API error ${res.status}: could not list commits for ${repo}` };
+      const data = await res.json();
+      return {
+        repo,
+        commits: data.map(c => ({
+          sha: c.sha.slice(0, 7),
+          message: c.commit.message,
+          author: c.commit.author ? c.commit.author.name : null,
+          date: c.commit.author ? c.commit.author.date : null,
+          url: c.html_url
+        }))
+      };
+    }
+    if (name === 'github_list_issues') {
+      const owner = githubLogin;
+      const repo = args.repo;
+      const res = await githubApiRequest(`/repos/${owner}/${repo}/issues?state=open&per_page=50`, token);
+      if (!res.ok) return { error: `GitHub API error ${res.status}: could not list issues for ${repo}` };
+      const data = await res.json();
+      return {
+        repo,
+        issues: data.filter(i => !i.pull_request).map(i => ({ number: i.number, title: i.title, url: i.html_url, createdAt: i.created_at }))
+      };
     }
     return { error: 'Unknown tool' };
   } catch (err) {
@@ -1833,6 +2200,94 @@ async function executeGithubWriteTool(name, args, token, githubLogin) {
       }
       return { success: true, path };
     }
+    if (name === 'github_create_repo') {
+      const res = await githubApiRequest('/user/repos', token, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: args.name, description: args.description || '', private: !!args.isPrivate })
+      });
+      if (!res.ok) {
+        const errBody = await res.text();
+        return { error: `GitHub API error ${res.status}: ${errBody}` };
+      }
+      const data = await res.json();
+      return { success: true, name: data.name, url: data.html_url };
+    }
+    if (name === 'github_delete_repo') {
+      const res = await githubApiRequest(`/repos/${owner}/${args.repo}`, token, { method: 'DELETE' });
+      if (!res.ok && res.status !== 204) {
+        const errBody = await res.text();
+        return { error: `GitHub API error ${res.status}: ${errBody}` };
+      }
+      return { success: true, repo: args.repo };
+    }
+    if (name === 'github_create_branch') {
+      const repoInfoRes = await githubApiRequest(`/repos/${owner}/${repo}`, token);
+      if (!repoInfoRes.ok) return { error: `GitHub API error ${repoInfoRes.status}: could not find repo ${repo}` };
+      const repoInfo = await repoInfoRes.json();
+      const fromBranch = args.fromBranch || repoInfo.default_branch;
+      const refRes = await githubApiRequest(`/repos/${owner}/${repo}/git/ref/heads/${encodeURIComponent(fromBranch)}`, token);
+      if (!refRes.ok) return { error: `GitHub API error ${refRes.status}: could not find branch "${fromBranch}"` };
+      const refData = await refRes.json();
+      const res = await githubApiRequest(`/repos/${owner}/${repo}/git/refs`, token, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ref: `refs/heads/${args.newBranch}`, sha: refData.object.sha })
+      });
+      if (!res.ok) {
+        const errBody = await res.text();
+        return { error: `GitHub API error ${res.status}: ${errBody}` };
+      }
+      return { success: true, newBranch: args.newBranch, fromBranch };
+    }
+    if (name === 'github_delete_branch') {
+      const res = await githubApiRequest(`/repos/${owner}/${repo}/git/refs/heads/${encodeURIComponent(args.branch)}`, token, { method: 'DELETE' });
+      if (!res.ok && res.status !== 204) {
+        const errBody = await res.text();
+        return { error: `GitHub API error ${res.status}: ${errBody}` };
+      }
+      return { success: true, branch: args.branch };
+    }
+    if (name === 'github_move_file') {
+      const fromPath = args.fromPath;
+      const toPath = args.toPath;
+      const existing = await githubApiRequest(`/repos/${owner}/${repo}/contents/${encodeURIComponent(fromPath)}`, token);
+      if (!existing.ok) return { error: `GitHub API error ${existing.status}: could not find "${fromPath}" in ${repo}` };
+      const existingData = await existing.json();
+      if (Array.isArray(existingData)) return { error: `"${fromPath}" is not a file.` };
+      const createRes = await githubApiRequest(`/repos/${owner}/${repo}/contents/${encodeURIComponent(toPath)}`, token, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: args.commitMessage, content: existingData.content })
+      });
+      if (!createRes.ok) {
+        const errBody = await createRes.text();
+        return { error: `GitHub API error ${createRes.status}: could not create "${toPath}": ${errBody}` };
+      }
+      const deleteRes = await githubApiRequest(`/repos/${owner}/${repo}/contents/${encodeURIComponent(fromPath)}`, token, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: args.commitMessage, sha: existingData.sha })
+      });
+      if (!deleteRes.ok) {
+        const errBody = await deleteRes.text();
+        return { error: `Created "${toPath}" but failed to delete old "${fromPath}": ${errBody}` };
+      }
+      return { success: true, fromPath, toPath };
+    }
+    if (name === 'github_create_issue') {
+      const res = await githubApiRequest(`/repos/${owner}/${repo}/issues`, token, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: args.title, body: args.body || '' })
+      });
+      if (!res.ok) {
+        const errBody = await res.text();
+        return { error: `GitHub API error ${res.status}: ${errBody}` };
+      }
+      const data = await res.json();
+      return { success: true, number: data.number, url: data.html_url };
+    }
     return { error: 'Unknown tool' };
   } catch (err) {
     console.error('GitHub write tool failed', name, err);
@@ -1853,10 +2308,19 @@ async function callGeminiWithRotation(msgs, onKeyUsed, systemPromptOverride, opt
 
   for (const keyObj of activeKeys) {
     try {
-      let contents = msgs.map(m => ({
-        role: m.role === 'assistant' ? 'model' : 'user',
-        parts: [{ text: m.content }]
-      }));
+      let contents = msgs.map(m => {
+        const parts = [];
+        if (m.attachments && m.attachments.length > 0) {
+          for (const att of m.attachments) {
+            parts.push({ inline_data: { mime_type: att.mimeType, data: att.base64 } });
+          }
+        }
+        parts.push({ text: m.content });
+        return {
+          role: m.role === 'assistant' ? 'model' : 'user',
+          parts
+        };
+      });
 
       const functionDeclarations = [];
       if (enableMemoryTool) functionDeclarations.push(MEMORY_TOOL_DECLARATION);
@@ -1929,6 +2393,8 @@ async function runGeminiToolLoop(requestBody, keyObj, enableMemoryTool, githubCt
     if (functionCalls.length > 0) {
       // A write-tool call pauses the whole loop for user confirmation — even if
       // other calls are bundled alongside it, we hold everything until resolved.
+      // If the model also produced text in the same turn (e.g. "Oke, aku akan..."),
+      // surface that first so the confirmation doesn't pop up out of nowhere.
       const writeCall = functionCalls.find(fc => GITHUB_WRITE_TOOL_NAMES.includes(fc.functionCall.name));
       if (writeCall && githubCtx) {
         return {
@@ -1937,7 +2403,8 @@ async function runGeminiToolLoop(requestBody, keyObj, enableMemoryTool, githubCt
             requestBody, keyObj, enableMemoryTool, githubCtx,
             candidateParts, functionCalls,
             writeCallName: writeCall.functionCall.name,
-            writeCallArgs: writeCall.functionCall.args || {}
+            writeCallArgs: writeCall.functionCall.args || {},
+            precedingText: (textPart && textPart.text) ? textPart.text : null
           }
         };
       }
@@ -2032,9 +2499,11 @@ Memory usage rules:
   const githubBlock = githubLogin ? `
 
 The user has connected their GitHub account (username: ${githubLogin}). You have tools to interact with their repos:
-- github_list_repos, github_list_files, github_read_file — read-only, use freely whenever relevant.
-- github_write_file, github_delete_file — these make real changes and will always be shown to the user as a confirmation prompt before anything happens; you don't need to ask for permission in chat first, just call the tool and the UI handles confirmation. Still, be precise: read the current file first with github_read_file before editing it (unless creating a brand-new file), and write a clear, accurate commitMessage.
-- Never guess repo or file names — use github_list_repos / github_list_files first if you're not sure what exists.
+- Read-only (use freely whenever relevant, no permission needed): github_list_repos, github_list_files, github_read_file, github_list_branches, github_list_commits, github_list_issues.
+- Write actions (each one always shows the user a confirmation prompt before anything happens — you don't need to ask for permission in chat first, just call the tool and the UI handles confirmation): github_write_file, github_delete_file, github_create_repo, github_create_branch, github_delete_branch, github_move_file, github_create_issue.
+- github_delete_repo is highly destructive and irreversible — only call it when the user has clearly and explicitly named the exact repo they want deleted. Never call it based on a vague or ambiguous request, and never chain it right after other actions without the user specifically asking for that repo to be deleted.
+- Read the current file first with github_read_file before editing it with github_write_file (unless creating a brand-new file), and write a clear, accurate commitMessage for every write/move action.
+- Never guess repo, branch, or file names — use github_list_repos / github_list_files / github_list_branches first if you're not sure what exists.
 - Assume the repo owner is the connected user unless they clearly mean another org/user.` : '';
 
   return SYSTEM_PROMPT + memoryBlock + githubBlock;
@@ -2137,6 +2606,17 @@ function updatePlaceholder() {
   textarea.placeholder = messages.length === 0 ? t('input.placeholderEmpty') : t('input.placeholderReply');
 }
 
+function renderBubbleAttachments(attachments) {
+  if (!attachments || attachments.length === 0) return '';
+  const chips = attachments.map(att => {
+    const thumb = (att.isImage && att.base64)
+      ? `<img src="data:${att.mimeType};base64,${att.base64}" alt="">`
+      : '';
+    return `<div class="bubble-attach-chip">${thumb}<span>${escapeHtml(att.name)}</span></div>`;
+  }).join('');
+  return `<div class="bubble-attachments">${chips}</div>`;
+}
+
 function renderMessages() {
   updatePlaceholder();
   updateTopBarMenuIcon();
@@ -2154,7 +2634,7 @@ function renderMessages() {
 
   let html = messages.map(msg => `
     <div class="message-row ${msg.role}">
-      <div class="bubble ${msg.role}">${renderMessageContent(msg.content)}</div>
+      <div class="bubble ${msg.role}">${renderBubbleAttachments(msg.attachments)}${renderMessageContent(msg.content)}</div>
     </div>
   `).join('');
 
@@ -2450,7 +2930,8 @@ let pendingGithubConfirmation = null; // { pending, chatId, isNewChat, trimmed }
 async function handleSend() {
   const textarea = document.getElementById('inputTextarea');
   const trimmed = textarea.value.trim();
-  if (!trimmed || isLoading) return;
+  const hasAttachments = pendingAttachments.length > 0;
+  if ((!trimmed && !hasAttachments) || isLoading) return;
   if (isListening) stopListening();
 
   if (apiKeys.length === 0) {
@@ -2458,10 +2939,17 @@ async function handleSend() {
     return;
   }
 
+  if (pendingAttachments.some(a => a.loading)) {
+    return; // still reading a file, wait
+  }
+
   hideError();
-  const userMessage = { role: 'user', content: trimmed };
+  const attachmentsForMessage = pendingAttachments.map(a => ({ name: a.name, mimeType: a.mimeType, base64: a.base64, size: a.size, isImage: a.isImage }));
+  const userMessage = { role: 'user', content: trimmed || t('attach.defaultPrompt'), attachments: attachmentsForMessage };
   messages = [...messages, userMessage];
   textarea.value = '';
+  pendingAttachments = [];
+  renderAttachPreview();
   autoResizeTextarea();
   updateSendButtonState();
   isLoading = true;
@@ -2480,10 +2968,7 @@ async function handleSend() {
     const result = await callGeminiWithRotation(messages, handleKeyUsage, buildSystemPrompt(githubCtx ? githubCtx.login : null), { enableMemoryTool: true, githubCtx });
 
     if (result && typeof result === 'object' && result.pendingConfirmation) {
-      isLoading = false;
-      pendingGithubConfirmation = { pending: result.pendingConfirmation, chatId, isNewChat, trimmed };
-      showGithubConfirmSheet(result.pendingConfirmation);
-      renderMessages();
+      presentPendingConfirmation(result.pendingConfirmation, chatId, isNewChat, trimmed);
       return;
     }
 
@@ -2500,6 +2985,19 @@ async function handleSend() {
     }
     renderMessages();
   }
+}
+
+// Shows a write-tool confirmation, first surfacing any text the model said
+// alongside the tool call (e.g. "Oke, aku akan update file ini...") as a
+// normal assistant bubble — so the confirm sheet never appears out of nowhere.
+function presentPendingConfirmation(pendingConfirmation, chatId, isNewChat, trimmed) {
+  isLoading = false;
+  if (pendingConfirmation.precedingText) {
+    messages = [...messages, { role: 'assistant', content: pendingConfirmation.precedingText }];
+  }
+  pendingGithubConfirmation = { pending: pendingConfirmation, chatId, isNewChat, trimmed };
+  renderMessages();
+  showGithubConfirmSheet(pendingConfirmation);
 }
 
 async function finishAssistantTurn(replyText, chatId, isNewChat, trimmed) {
@@ -2544,10 +3042,7 @@ async function handleGithubConfirmationDecision(approved) {
   try {
     const result = await resumeGeminiToolLoop(pending, approved);
     if (result && typeof result === 'object' && result.pendingConfirmation) {
-      isLoading = false;
-      pendingGithubConfirmation = { pending: result.pendingConfirmation, chatId, isNewChat, trimmed };
-      showGithubConfirmSheet(result.pendingConfirmation);
-      renderMessages();
+      presentPendingConfirmation(result.pendingConfirmation, chatId, isNewChat, trimmed);
       return;
     }
     await finishAssistantTurn(result, chatId, isNewChat, trimmed);
@@ -2740,6 +3235,8 @@ function openLanguageSheet() { openFullscreenPage('languagePage'); }
 function closeLanguageSheet() { closeFullscreenPage('languagePage'); }
 function openConnectorsSheet() { openFullscreenPage('connectorsPage'); refreshGithubConnectorUI(); }
 function closeConnectorsSheet() { closeFullscreenPage('connectorsPage'); }
+function openConnectorsAddSheet() { openFullscreenPage('connectorsAddPage'); refreshGithubConnectorUI(); }
+function closeConnectorsAddSheet() { closeFullscreenPage('connectorsAddPage'); }
 function openAttachSheet() {
   const sheet = document.getElementById('attachSheet');
   const overlay = document.getElementById('attachSheetOverlay');
@@ -2908,7 +3405,8 @@ function autoResizeTextarea() {
 function updateSendButtonState() {
   const textarea = document.getElementById('inputTextarea');
   const btn = document.getElementById('sendBtn');
-  btn.disabled = !textarea.value.trim() || isLoading;
+  const hasContent = !!textarea.value.trim() || pendingAttachments.length > 0;
+  btn.disabled = !hasContent || isLoading || pendingAttachments.some(a => a.loading);
 }
 
 // ============================================================
@@ -2959,13 +3457,100 @@ document.getElementById('attachOptionPhoto').addEventListener('click', () => {
 document.getElementById('attachOptionFile').addEventListener('click', () => {
   document.getElementById('attachFileInput').click();
 });
-function handleAttachedFiles(fileList) {
-  // TODO: hook into actual message-attachment pipeline.
-  // For now just close the sheet after a file/photo is picked.
-  if (fileList && fileList.length > 0) {
-    closeAttachSheet();
+const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024; // 10MB
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = () => reject(new Error('File read failed'));
+    reader.readAsDataURL(file);
+  });
+}
+
+function fileExtBadge(name, mimeType) {
+  const ext = (name.split('.').pop() || '').toUpperCase();
+  if (ext && ext.length <= 5) return ext;
+  if (mimeType && mimeType.includes('/')) return mimeType.split('/')[1].toUpperCase().slice(0, 5);
+  return 'FILE';
+}
+
+async function handleAttachedFiles(fileList) {
+  if (!fileList || fileList.length === 0) return;
+  closeAttachSheet();
+
+  const files = Array.from(fileList);
+  for (const file of files) {
+    if (file.size > MAX_ATTACHMENT_BYTES) {
+      showError(t('attach.tooLarge').replace('{name}', file.name));
+      continue;
+    }
+    const id = `att_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const isImage = file.type.startsWith('image/');
+    const entry = {
+      id, name: file.name, mimeType: file.type || 'application/octet-stream',
+      size: file.size, base64: null, isImage, loading: true
+    };
+    pendingAttachments = [...pendingAttachments, entry];
+    renderAttachPreview();
+
+    try {
+      const base64 = await fileToBase64(file);
+      pendingAttachments = pendingAttachments.map(a => a.id === id ? { ...a, base64, loading: false } : a);
+    } catch (err) {
+      console.error('Failed to read file', file.name, err);
+      pendingAttachments = pendingAttachments.filter(a => a.id !== id);
+      showError(t('attach.readFailed').replace('{name}', file.name));
+    }
+    renderAttachPreview();
   }
 }
+
+function removeAttachment(id) {
+  pendingAttachments = pendingAttachments.filter(a => a.id !== id);
+  renderAttachPreview();
+}
+
+function renderAttachPreview() {
+  updateSendButtonState();
+  const row = document.getElementById('attachPreviewRow');
+  if (pendingAttachments.length === 0) {
+    row.classList.remove('visible');
+    row.innerHTML = '';
+    return;
+  }
+  row.classList.add('visible');
+  row.innerHTML = '';
+  for (const att of pendingAttachments) {
+    const chip = document.createElement('div');
+    chip.className = 'attach-preview-chip' + (att.isImage ? ' is-image' : '');
+
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'attach-preview-remove';
+    removeBtn.type = 'button';
+    removeBtn.innerHTML = '✕';
+    removeBtn.addEventListener('click', () => removeAttachment(att.id));
+    chip.appendChild(removeBtn);
+
+    if (att.isImage && att.base64) {
+      const img = document.createElement('img');
+      img.src = `data:${att.mimeType};base64,${att.base64}`;
+      chip.appendChild(img);
+    } else {
+      const badge = document.createElement('span');
+      badge.className = 'attach-preview-badge';
+      badge.textContent = fileExtBadge(att.name, att.mimeType);
+      chip.appendChild(badge);
+
+      const name = document.createElement('span');
+      name.className = 'attach-preview-name';
+      name.textContent = att.loading ? t('attach.loading') : att.name;
+      chip.appendChild(name);
+    }
+    row.appendChild(chip);
+  }
+}
+
 document.getElementById('attachCameraInput').addEventListener('change', (e) => handleAttachedFiles(e.target.files));
 document.getElementById('attachPhotoInput').addEventListener('change', (e) => handleAttachedFiles(e.target.files));
 document.getElementById('attachFileInput').addEventListener('change', (e) => handleAttachedFiles(e.target.files));
@@ -2980,7 +3565,22 @@ document.getElementById('attachOptionConnectors').addEventListener('click', () =
   openConnectorsSheet();
 });
 document.getElementById('closeConnectorsPageBtn').addEventListener('click', closeConnectorsSheet);
-document.getElementById('githubConnectBtn').addEventListener('click', handleGithubConnect);
+document.getElementById('openConnectorsAddPageBtn').addEventListener('click', openConnectorsAddSheet);
+document.getElementById('connectorsEmptyAddBtn').addEventListener('click', openConnectorsAddSheet);
+document.getElementById('closeConnectorsAddPageBtn').addEventListener('click', closeConnectorsAddSheet);
+document.getElementById('githubPickerRow').addEventListener('click', async () => {
+  const data = await loadGithubConnector();
+  if (data && data.login) return; // already connected — nothing to toggle here
+  const setupCard = document.getElementById('githubSetupCard');
+  setupCard.style.display = setupCard.style.display === 'none' ? '' : 'none';
+});
+document.getElementById('githubConnectBtn').addEventListener('click', async () => {
+  await handleGithubConnect();
+  const data = await loadGithubConnector();
+  if (data && data.login) {
+    closeConnectorsAddSheet();
+  }
+});
 document.getElementById('githubDisconnectBtn').addEventListener('click', handleGithubDisconnect);
 document.getElementById('githubTokenInput').addEventListener('keydown', (e) => {
   if (e.key === 'Enter') handleGithubConnect();
