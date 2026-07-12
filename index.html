@@ -705,6 +705,21 @@
   .gh-confirm-card.is-destructive .gh-confirm-icon { color: #c0392b; background: rgba(192, 57, 43, 0.1); }
   .gh-confirm-card.is-destructive .gh-confirm-btn-confirm { background: #c0392b; }
 
+  /* Tool progress chip — shows what Codspire is doing in real time while a
+     confirmed GitHub write action is being executed. */
+  .tool-progress-chip {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: var(--cream-dark); border: 1px solid var(--border); border-radius: 999px;
+    padding: 7px 12px; font-size: 12.5px; font-weight: 600; color: var(--ink-soft);
+    margin-top: 6px;
+  }
+  .tool-progress-chip-spinner {
+    width: 13px; height: 13px; border-radius: 50%;
+    border: 2px solid var(--border); border-top-color: var(--terracotta);
+    animation: toolProgressSpin 0.7s linear infinite; flex-shrink: 0;
+  }
+  @keyframes toolProgressSpin { to { transform: rotate(360deg); } }
+
   /* Attached file preview chips (above textarea) */
   .attach-preview-row {
     display: none; gap: 8px; padding: 2px 2px 8px 2px; overflow-x: auto;
@@ -1209,6 +1224,7 @@ let currentChatId = null;
 let messages = [];
 let isTemporaryChat = false;
 let isLoading = false;
+let currentToolProgress = null; // e.g. 'Menulis file…' — shown as a chip while a confirmed GitHub write action runs
 let userMemory = { facts: [] };
 let currentUser = null; // { uid, email, displayName, photoURL } once signed in (firebase mode only)
 let pendingAttachments = []; // [{ id, name, mimeType, size, base64, isImage, loading }]
@@ -1309,6 +1325,14 @@ const I18N_STRINGS = {
     'connectors.confirmMoveFileBody': 'Codspire wants to rename or move a file. Review the details before approving.',
     'connectors.confirmCreateIssueTitle': 'Create issue',
     'connectors.confirmCreateIssueBody': 'Codspire wants to create a new issue. Review the details before approving.',
+    'connectors.progressWriteFile': 'Writing file…',
+    'connectors.progressDeleteFile': 'Deleting file…',
+    'connectors.progressCreateRepo': 'Creating repo…',
+    'connectors.progressDeleteRepo': 'Deleting repo…',
+    'connectors.progressCreateBranch': 'Creating branch…',
+    'connectors.progressDeleteBranch': 'Deleting branch…',
+    'connectors.progressMoveFile': 'Moving file…',
+    'connectors.progressCreateIssue': 'Creating issue…',
     'connectors.metaVisibility': 'Visibility',
     'connectors.private': 'Private',
     'connectors.public': 'Public',
@@ -1426,6 +1450,14 @@ const I18N_STRINGS = {
     'connectors.confirmMoveFileBody': 'Codspire mau rename atau pindahin file. Cek dulu detailnya sebelum menyetujui.',
     'connectors.confirmCreateIssueTitle': 'Bikin issue',
     'connectors.confirmCreateIssueBody': 'Codspire mau bikin issue baru. Cek dulu detailnya sebelum menyetujui.',
+    'connectors.progressWriteFile': 'Menulis file…',
+    'connectors.progressDeleteFile': 'Menghapus file…',
+    'connectors.progressCreateRepo': 'Membuat repo…',
+    'connectors.progressDeleteRepo': 'Menghapus repo…',
+    'connectors.progressCreateBranch': 'Membuat branch…',
+    'connectors.progressDeleteBranch': 'Menghapus branch…',
+    'connectors.progressMoveFile': 'Memindahkan file…',
+    'connectors.progressCreateIssue': 'Membuat issue…',
     'connectors.metaVisibility': 'Visibilitas',
     'connectors.private': 'Privat',
     'connectors.public': 'Publik',
@@ -1680,21 +1712,21 @@ async function handleGithubDisconnect() {
 }
 
 const GH_CONFIRM_CONFIG = {
-  github_write_file: { titleKey: 'connectors.confirmWriteTitle', bodyKey: 'connectors.confirmWriteBody', destructive: false,
+  github_write_file: { titleKey: 'connectors.confirmWriteTitle', bodyKey: 'connectors.confirmWriteBody', progressKey: 'connectors.progressWriteFile', destructive: false,
     meta: a => [['connectors.metaRepo', a.repo], ['connectors.metaFile', a.path], ['connectors.metaCommit', a.commitMessage]] },
-  github_delete_file: { titleKey: 'connectors.confirmDeleteTitle', bodyKey: 'connectors.confirmDeleteBody', destructive: true,
+  github_delete_file: { titleKey: 'connectors.confirmDeleteTitle', bodyKey: 'connectors.confirmDeleteBody', progressKey: 'connectors.progressDeleteFile', destructive: true,
     meta: a => [['connectors.metaRepo', a.repo], ['connectors.metaFile', a.path], ['connectors.metaCommit', a.commitMessage]] },
-  github_create_repo: { titleKey: 'connectors.confirmCreateRepoTitle', bodyKey: 'connectors.confirmCreateRepoBody', destructive: false,
+  github_create_repo: { titleKey: 'connectors.confirmCreateRepoTitle', bodyKey: 'connectors.confirmCreateRepoBody', progressKey: 'connectors.progressCreateRepo', destructive: false,
     meta: a => [['connectors.metaRepo', a.name], ['connectors.metaVisibility', a.isPrivate ? t('connectors.private') : t('connectors.public')]] },
-  github_delete_repo: { titleKey: 'connectors.confirmDeleteRepoTitle', bodyKey: 'connectors.confirmDeleteRepoBody', destructive: true,
+  github_delete_repo: { titleKey: 'connectors.confirmDeleteRepoTitle', bodyKey: 'connectors.confirmDeleteRepoBody', progressKey: 'connectors.progressDeleteRepo', destructive: true,
     meta: a => [['connectors.metaRepo', a.repo]] },
-  github_create_branch: { titleKey: 'connectors.confirmCreateBranchTitle', bodyKey: 'connectors.confirmCreateBranchBody', destructive: false,
+  github_create_branch: { titleKey: 'connectors.confirmCreateBranchTitle', bodyKey: 'connectors.confirmCreateBranchBody', progressKey: 'connectors.progressCreateBranch', destructive: false,
     meta: a => [['connectors.metaRepo', a.repo], ['connectors.metaNewBranch', a.newBranch], ['connectors.metaFromBranch', a.fromBranch]] },
-  github_delete_branch: { titleKey: 'connectors.confirmDeleteBranchTitle', bodyKey: 'connectors.confirmDeleteBranchBody', destructive: true,
+  github_delete_branch: { titleKey: 'connectors.confirmDeleteBranchTitle', bodyKey: 'connectors.confirmDeleteBranchBody', progressKey: 'connectors.progressDeleteBranch', destructive: true,
     meta: a => [['connectors.metaRepo', a.repo], ['connectors.metaBranch', a.branch]] },
-  github_move_file: { titleKey: 'connectors.confirmMoveFileTitle', bodyKey: 'connectors.confirmMoveFileBody', destructive: false,
+  github_move_file: { titleKey: 'connectors.confirmMoveFileTitle', bodyKey: 'connectors.confirmMoveFileBody', progressKey: 'connectors.progressMoveFile', destructive: false,
     meta: a => [['connectors.metaRepo', a.repo], ['connectors.metaFrom', a.fromPath], ['connectors.metaTo', a.toPath], ['connectors.metaCommit', a.commitMessage]] },
-  github_create_issue: { titleKey: 'connectors.confirmCreateIssueTitle', bodyKey: 'connectors.confirmCreateIssueBody', destructive: false,
+  github_create_issue: { titleKey: 'connectors.confirmCreateIssueTitle', bodyKey: 'connectors.confirmCreateIssueBody', progressKey: 'connectors.progressCreateIssue', destructive: false,
     meta: a => [['connectors.metaRepo', a.repo], ['connectors.metaIssueTitle', a.title]] }
 };
 
@@ -2639,10 +2671,14 @@ function renderMessages() {
   `).join('');
 
   if (isLoading) {
+    const progressChipHtml = currentToolProgress
+      ? `<div class="tool-progress-chip"><span class="tool-progress-chip-spinner"></span><span>${escapeHtml(currentToolProgress)}</span></div>`
+      : '';
     html += `
       <div class="message-row assistant">
         <div class="bubble assistant">
           <span class="codspire-loading-mark"><svg width="750" height="750" viewBox="0 0 750 750" xmlns="http://www.w3.org/2000/svg"><g transform-origin="354.8 416.1px">  <path class="petal petal-0" d="M 365.0,424.0 L 370.0,438.0 L 374.0,464.0 L 375.0,528.0 L 378.0,550.0 L 387.0,578.0 L 394.0,591.0 L 408.0,610.0 L 424.0,626.0 L 441.0,639.0 L 451.0,645.0 L 481.0,659.0 L 501.0,665.0 L 522.0,669.0 L 530.0,669.0 L 531.0,670.0 L 570.0,669.0 L 555.0,653.0 L 540.0,632.0 L 524.0,605.0 L 502.0,559.0 L 488.0,537.0 L 476.0,522.0 L 460.0,506.0 L 420.0,475.0 L 385.0,440.0 Z" fill="#1339C7"/>  <path class="petal petal-1" d="M 356.0,426.0 L 346.0,449.0 L 337.0,463.0 L 307.0,499.0 L 296.0,515.0 L 290.0,527.0 L 287.0,539.0 L 287.0,545.0 L 286.0,546.0 L 287.0,564.0 L 288.0,565.0 L 288.0,570.0 L 290.0,578.0 L 297.0,596.0 L 310.0,619.0 L 322.0,634.0 L 339.0,651.0 L 356.0,664.0 L 374.0,675.0 L 376.0,675.0 L 380.0,678.0 L 382.0,678.0 L 397.0,685.0 L 382.0,657.0 L 377.0,642.0 L 375.0,639.0 L 369.0,620.0 L 368.0,613.0 L 366.0,609.0 L 366.0,605.0 L 362.0,589.0 L 362.0,584.0 L 361.0,583.0 L 360.0,566.0 L 359.0,565.0 L 359.0,546.0 L 358.0,545.0 L 358.0,530.0 L 359.0,529.0 L 358.0,525.0 L 359.0,524.0 L 360.0,487.0 L 361.0,486.0 L 361.0,463.0 L 360.0,462.0 L 359.0,441.0 L 358.0,440.0 Z" fill="#1339C7"/>  <path class="petal petal-2" d="M 343.0,429.0 L 318.0,439.0 L 288.0,445.0 L 271.0,446.0 L 270.0,447.0 L 256.0,447.0 L 255.0,448.0 L 213.0,449.0 L 196.0,452.0 L 166.0,462.0 L 146.0,474.0 L 136.0,482.0 L 119.0,500.0 L 109.0,515.0 L 100.0,533.0 L 94.0,550.0 L 89.0,573.0 L 88.0,590.0 L 87.0,591.0 L 88.0,616.0 L 92.0,610.0 L 107.0,595.0 L 127.0,579.0 L 142.0,569.0 L 181.0,549.0 L 234.0,529.0 L 254.0,519.0 L 278.0,504.0 L 298.0,488.0 L 315.0,471.0 L 328.0,455.0 Z M 337.0,420.0 L 336.0,419.0 L 331.0,419.0 L 330.0,418.0 L 326.0,418.0 L 325.0,417.0 L 321.0,417.0 L 320.0,416.0 L 309.0,414.0 L 289.0,407.0 L 269.0,398.0 L 264.0,397.0 L 259.0,394.0 L 240.0,388.0 L 236.0,388.0 L 231.0,386.0 L 222.0,386.0 L 221.0,385.0 L 195.0,387.0 L 191.0,389.0 L 188.0,389.0 L 175.0,393.0 L 164.0,398.0 L 149.0,407.0 L 134.0,419.0 L 121.0,432.0 L 106.0,452.0 L 96.0,470.0 L 96.0,472.0 L 91.0,482.0 L 90.0,487.0 L 105.0,475.0 L 126.0,462.0 L 153.0,450.0 L 174.0,443.0 L 177.0,443.0 L 186.0,440.0 L 190.0,440.0 L 191.0,439.0 L 211.0,437.0 L 212.0,436.0 L 224.0,436.0 L 225.0,435.0 L 260.0,435.0 L 261.0,434.0 L 276.0,434.0 L 277.0,433.0 L 294.0,432.0 L 295.0,431.0 L 300.0,431.0 L 301.0,430.0 L 314.0,428.0 Z" fill="#1339C7"/>  <path class="petal petal-3" d="M 86.0,241.0 L 111.0,255.0 L 129.0,269.0 L 150.0,290.0 L 179.0,325.0 L 199.0,345.0 L 217.0,359.0 L 246.0,376.0 L 274.0,389.0 L 310.0,402.0 L 338.0,409.0 L 325.0,384.0 L 309.0,327.0 L 299.0,307.0 L 285.0,288.0 L 269.0,272.0 L 256.0,262.0 L 245.0,255.0 L 221.0,244.0 L 197.0,237.0 L 179.0,235.0 L 178.0,234.0 L 138.0,233.0 L 137.0,234.0 L 116.0,235.0 Z" fill="#1339C7"/>  <path class="petal petal-4" d="M 357.0,66.0 L 356.0,66.0 L 358.0,68.0 L 361.0,80.0 L 363.0,96.0 L 363.0,122.0 L 361.0,141.0 L 353.0,176.0 L 340.0,211.0 L 328.0,250.0 L 322.0,291.0 L 322.0,316.0 L 326.0,344.0 L 334.0,372.0 L 344.0,395.0 L 348.0,372.0 L 355.0,352.0 L 369.0,328.0 L 398.0,294.0 L 413.0,273.0 L 425.0,246.0 L 430.0,220.0 L 430.0,200.0 L 427.0,181.0 L 415.0,146.0 L 402.0,122.0 L 387.0,100.0 L 368.0,77.0 Z M 457.0,202.0 L 456.0,204.0 L 456.0,208.0 L 455.0,209.0 L 455.0,213.0 L 454.0,214.0 L 454.0,217.0 L 452.0,222.0 L 452.0,225.0 L 451.0,226.0 L 447.0,240.0 L 435.0,265.0 L 422.0,284.0 L 392.0,318.0 L 374.0,343.0 L 361.0,371.0 L 360.0,377.0 L 357.0,385.0 L 357.0,388.0 L 356.0,389.0 L 356.0,392.0 L 355.0,393.0 L 355.0,396.0 L 358.0,393.0 L 367.0,388.0 L 369.0,386.0 L 374.0,384.0 L 376.0,382.0 L 382.0,379.0 L 384.0,379.0 L 388.0,376.0 L 390.0,376.0 L 397.0,372.0 L 399.0,372.0 L 430.0,356.0 L 440.0,349.0 L 450.0,339.0 L 455.0,332.0 L 461.0,320.0 L 461.0,318.0 L 464.0,311.0 L 464.0,308.0 L 466.0,303.0 L 466.0,299.0 L 467.0,298.0 L 468.0,282.0 L 469.0,281.0 L 469.0,264.0 L 468.0,263.0 L 467.0,242.0 L 466.0,241.0 L 466.0,237.0 L 465.0,236.0 L 464.0,226.0 L 463.0,225.0 L 461.0,214.0 L 460.0,213.0 Z" fill="#1339C7"/>  <path class="petal petal-5" d="M 664.0,316.0 L 648.0,323.0 L 620.0,329.0 L 612.0,329.0 L 611.0,330.0 L 529.0,330.0 L 505.0,334.0 L 490.0,338.0 L 460.0,351.0 L 421.0,374.0 L 387.0,391.0 L 368.0,402.0 L 398.0,402.0 L 399.0,403.0 L 409.0,403.0 L 422.0,405.0 L 452.0,412.0 L 493.0,426.0 L 514.0,430.0 L 539.0,430.0 L 562.0,425.0 L 577.0,419.0 L 596.0,408.0 L 611.0,396.0 L 624.0,383.0 L 637.0,367.0 L 647.0,352.0 L 656.0,336.0 Z M 369.0,415.0 L 371.0,417.0 L 373.0,417.0 L 378.0,421.0 L 381.0,422.0 L 384.0,425.0 L 389.0,428.0 L 396.0,435.0 L 397.0,435.0 L 419.0,458.0 L 420.0,458.0 L 427.0,465.0 L 428.0,465.0 L 435.0,471.0 L 441.0,475.0 L 453.0,481.0 L 455.0,481.0 L 462.0,484.0 L 465.0,484.0 L 466.0,485.0 L 471.0,485.0 L 472.0,486.0 L 497.0,486.0 L 498.0,485.0 L 503.0,485.0 L 504.0,484.0 L 511.0,483.0 L 512.0,482.0 L 523.0,479.0 L 546.0,468.0 L 548.0,466.0 L 551.0,465.0 L 563.0,457.0 L 572.0,449.0 L 573.0,449.0 L 573.0,448.0 L 569.0,448.0 L 568.0,449.0 L 560.0,449.0 L 559.0,450.0 L 531.0,450.0 L 530.0,449.0 L 523.0,449.0 L 522.0,448.0 L 513.0,447.0 L 512.0,446.0 L 501.0,444.0 L 494.0,441.0 L 491.0,441.0 L 488.0,439.0 L 483.0,438.0 L 480.0,436.0 L 478.0,436.0 L 475.0,434.0 L 470.0,433.0 L 462.0,429.0 L 460.0,429.0 L 459.0,428.0 L 457.0,428.0 L 456.0,427.0 L 454.0,427.0 L 444.0,423.0 L 441.0,423.0 L 437.0,421.0 L 426.0,419.0 L 425.0,418.0 L 420.0,418.0 L 419.0,417.0 L 414.0,417.0 L 413.0,416.0 L 407.0,416.0 L 406.0,415.0 L 393.0,415.0 L 392.0,414.0 L 378.0,414.0 L 377.0,415.0 Z" fill="#1339C7"/></g></svg></span>
+          ${progressChipHtml}
         </div>
       </div>
     `;
@@ -2981,7 +3017,11 @@ async function handleSend() {
     } else if (err.message === 'NO_KEYS') {
       showError(t('error.noApiKeys'));
     } else {
-      showError(t('error.modelUnreachable'));
+      // Show the real error detail alongside the friendly message instead of
+      // hiding it — makes future failures (bad API response, invalid request
+      // format, etc.) diagnosable directly from the UI instead of only console.
+      const detail = err && err.message ? err.message : String(err);
+      showError(`${t('error.modelUnreachable')} (${detail})`);
     }
     renderMessages();
   }
@@ -2992,6 +3032,7 @@ async function handleSend() {
 // normal assistant bubble — so the confirm sheet never appears out of nowhere.
 function presentPendingConfirmation(pendingConfirmation, chatId, isNewChat, trimmed) {
   isLoading = false;
+  currentToolProgress = null;
   if (pendingConfirmation.precedingText) {
     messages = [...messages, { role: 'assistant', content: pendingConfirmation.precedingText }];
   }
@@ -3004,6 +3045,7 @@ async function finishAssistantTurn(replyText, chatId, isNewChat, trimmed) {
   const assistantMessage = { role: 'assistant', content: replyText };
   messages = [...messages, assistantMessage];
   isLoading = false;
+  currentToolProgress = null;
   renderMessages();
 
   if (isTemporaryChat) {
@@ -3037,10 +3079,20 @@ async function handleGithubConfirmationDecision(approved) {
   pendingGithubConfirmation = null;
   hideGithubConfirmSheet();
   isLoading = true;
+  // Show a chip naming the real action being executed right now (e.g. "Menulis
+  // file…") only when the user actually approved a write — a decline doesn't
+  // touch GitHub, so there's nothing in-progress to show.
+  if (approved) {
+    const config = GH_CONFIRM_CONFIG[pending.writeCallName] || GH_CONFIRM_CONFIG.github_write_file;
+    currentToolProgress = t(config.progressKey);
+  } else {
+    currentToolProgress = null;
+  }
   renderMessages();
 
   try {
     const result = await resumeGeminiToolLoop(pending, approved);
+    currentToolProgress = null;
     if (result && typeof result === 'object' && result.pendingConfirmation) {
       presentPendingConfirmation(result.pendingConfirmation, chatId, isNewChat, trimmed);
       return;
@@ -3049,6 +3101,7 @@ async function handleGithubConfirmationDecision(approved) {
   } catch (err) {
     console.error(err);
     isLoading = false;
+    currentToolProgress = null;
     showError(t('error.modelUnreachable'));
     renderMessages();
   }
@@ -3475,6 +3528,25 @@ function fileExtBadge(name, mimeType) {
   return 'FILE';
 }
 
+// Browsers often fail to detect a MIME type for code/text files (file.type
+// comes back as ''), which previously fell back to 'application/octet-stream'.
+// Gemini's API rejects that type for inline_data with a 400 error, which was
+// being shown to the user as a generic "modelUnreachable" message. Map known
+// text-based extensions to a MIME type Gemini actually accepts.
+const TEXT_EXTENSION_MIME_MAP = {
+  html: 'text/html', htm: 'text/html', css: 'text/css', js: 'text/javascript',
+  jsx: 'text/javascript', ts: 'text/javascript', tsx: 'text/javascript',
+  json: 'application/json', md: 'text/markdown', txt: 'text/plain',
+  csv: 'text/csv', xml: 'text/xml', py: 'text/x-python', java: 'text/x-java',
+  c: 'text/x-c', cpp: 'text/x-c', h: 'text/x-c', yml: 'text/plain', yaml: 'text/plain',
+  sh: 'text/x-sh', php: 'text/plain', rb: 'text/plain', go: 'text/plain', sql: 'text/plain'
+};
+function resolveMimeType(file) {
+  if (file.type) return file.type;
+  const ext = (file.name.split('.').pop() || '').toLowerCase();
+  return TEXT_EXTENSION_MIME_MAP[ext] || 'text/plain';
+}
+
 async function handleAttachedFiles(fileList) {
   if (!fileList || fileList.length === 0) return;
   closeAttachSheet();
@@ -3488,7 +3560,7 @@ async function handleAttachedFiles(fileList) {
     const id = `att_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
     const isImage = file.type.startsWith('image/');
     const entry = {
-      id, name: file.name, mimeType: file.type || 'application/octet-stream',
+      id, name: file.name, mimeType: resolveMimeType(file),
       size: file.size, base64: null, isImage, loading: true
     };
     pendingAttachments = [...pendingAttachments, entry];
