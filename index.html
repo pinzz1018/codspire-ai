@@ -2466,7 +2466,20 @@ async function runGeminiToolLoop(requestBody, keyObj, enableMemoryTool, githubCt
       continue;
     }
 
-    if (!textPart || !textPart.text) return { status: 'error', error: new Error('Empty response from model') };
+    if (!textPart || !textPart.text) {
+      // A totally empty candidate (no text, no functionCall) almost always
+      // means Gemini stopped for a reason other than finishing normally —
+      // most commonly a safety/content filter, or hitting MAX_TOKENS before
+      // producing any text. Surface that reason instead of a bare "empty".
+      const finishReason = data?.candidates?.[0]?.finishReason;
+      const promptBlockReason = data?.promptFeedback?.blockReason;
+      const reasonDetail = promptBlockReason
+        ? `prompt blocked: ${promptBlockReason}`
+        : finishReason
+          ? `finishReason: ${finishReason}`
+          : 'no candidates/parts in response';
+      return { status: 'error', error: new Error(`Empty response from model (${reasonDetail})`) };
+    }
     finalText = textPart.text;
   }
   if (finalText === null) return { status: 'error', error: new Error('Tool loop exceeded safety limit') };
