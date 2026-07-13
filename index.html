@@ -1,0 +1,1840 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Codspire</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap');
+
+  :root{
+    --bg: #F4F1EA;
+    --panel: #FFFFFF;
+    --ink: #2B2725;
+    --ink-soft: #6B6459;
+    --accent: #D97757;
+    --accent-soft: #F0DCD3;
+    --border: #E7E1D6;
+  }
+
+  *{ box-sizing: border-box; margin:0; padding:0; }
+
+  body{
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    height: 100vh;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .topbar{
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--ink-soft);
+    flex-shrink: 0;
+    position: relative;
+    z-index: 26;
+  }
+  .brand-mark{
+    width: 22px; height: 22px;
+    border-radius: 6px;
+    background: var(--accent);
+    display: flex; align-items:center; justify-content:center;
+    color: white; font-family: 'Fraunces', serif; font-weight: 600; font-size: 12px;
+  }
+
+  .hamburger-btn{
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 34px; height: 34px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    gap: 3px;
+  }
+  .hamburger-btn:hover{ background: var(--accent-soft); }
+  .hamburger-btn span{
+    display: none;
+  }
+  .hamburger-icon{
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .hamburger-icon div{
+    width: 18px;
+    height: 2px;
+    background: var(--ink);
+    border-radius: 2px;
+  }
+
+  .edge-swipe-zone{
+    position: fixed;
+    top: 52px;
+    left: 0;
+    bottom: 0;
+    width: 18px;
+    z-index: 25;
+    touch-action: pan-y;
+  }
+
+  /* Overlay */
+  .overlay{
+    position: fixed;
+    inset: 0;
+    background: rgba(43,39,37,0.25);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    z-index: 20;
+  }
+  .overlay.open{
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* Sidebar */
+  .sidebar{
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 300px;
+    background: var(--bg);
+    border-right: 1px solid var(--border);
+    transform: translateX(-100%);
+    transition: transform 0.22s ease;
+    z-index: 30;
+    padding: 18px 18px;
+    display: flex;
+    flex-direction: column;
+    touch-action: pan-y;
+  }
+  .sidebar.dragging{
+    transition: none;
+  }
+  .overlay.dragging{
+    transition: none;
+  }
+  .sidebar.open{
+    transform: translateX(0);
+  }
+
+  .sidebar-header{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+  }
+
+  .sidebar-brand{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .sidebar-brand-name{
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 16px;
+  }
+
+  .close-btn{
+    width: 30px; height: 30px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: var(--ink-soft);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex; align-items:center; justify-content:center;
+  }
+  .close-btn:hover{ background: var(--accent-soft); color: var(--ink); }
+
+  .settings-label{
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-soft);
+    margin-bottom: 10px;
+  }
+
+  .menu-list{
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-bottom: 8px;
+    flex-shrink: 0;
+  }
+
+  .menu-item{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 10px;
+    border-radius: 8px;
+    font-size: 14px;
+    color: var(--ink);
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    text-align: left;
+    width: 100%;
+  }
+  .menu-item:hover{ background: var(--panel); }
+  .menu-item .menu-icon{
+    width: 18px;
+    text-align: center;
+    color: var(--ink-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .lang-option .lang-check{
+    color: var(--accent);
+    opacity: 0;
+    flex-shrink: 0;
+  }
+  .lang-option.active .lang-check{
+    opacity: 1;
+  }
+
+  .menu-panel{
+    display: none;
+  }
+  .menu-panel.open{
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .back-row{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    cursor: pointer;
+    color: var(--ink-soft);
+    font-size: 13.5px;
+  }
+  .back-row:hover{ color: var(--ink); }
+
+  .settings-card{
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 14px;
+  }
+
+  .settings-card label{
+    display: block;
+    font-size: 13px;
+    color: var(--ink);
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+
+  .key-input-row{
+    display: flex;
+    gap: 6px;
+  }
+
+  .settings-card input[type="password"],
+  .settings-card input[type="text"]{
+    flex: 1;
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 10px;
+    font-size: 13.5px;
+    font-family: 'Inter', sans-serif;
+    color: var(--ink);
+    outline: none;
+    background: var(--bg);
+  }
+  .settings-card input:focus{
+    border-color: var(--accent);
+  }
+
+  .toggle-visibility{
+    width: 36px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--ink-soft);
+    cursor: pointer;
+    font-size: 13px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .toggle-visibility:hover{ background: var(--accent-soft); }
+
+  .save-key-btn{
+    width: 100%;
+    margin-top: 10px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 9px 10px;
+    font-size: 13.5px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .save-key-btn:hover{ opacity: 0.9; }
+
+  .key-hint{
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-top: 8px;
+    line-height: 1.5;
+  }
+  .key-hint a{
+    color: var(--accent);
+  }
+
+  .key-status{
+    font-size: 12.5px;
+    margin-top: 8px;
+    display: none;
+  }
+  .key-status.show{ display: block; }
+  .key-status.ok{ color: #4C7A3D; }
+  .key-status.clear{ color: var(--ink-soft); }
+
+  .clear-key-btn{
+    width: 100%;
+    margin-top: 8px;
+    background: transparent;
+    color: var(--ink-soft);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 12.5px;
+    cursor: pointer;
+  }
+  .clear-key-btn:hover{ background: var(--panel); color: var(--ink); }
+
+  .sidebar-footer{
+    margin-top: auto;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+    font-size: 12.5px;
+    color: var(--ink-soft);
+  }
+
+  /* ---- Riwayat percakapan di sidebar ---- */
+  .new-chat-btn{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 13.5px;
+    font-weight: 500;
+    cursor: pointer;
+    margin-bottom: 12px;
+    flex-shrink: 0;
+  }
+  .new-chat-btn:hover{ opacity: 0.92; }
+  .new-chat-btn svg{ flex-shrink: 0; }
+
+  .conversation-list{
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-height: 0;
+  }
+  .conversation-item{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 10px;
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--ink);
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    position: relative;
+  }
+  .conversation-item:hover{ background: var(--accent-soft); }
+  .conversation-item.active{ background: var(--accent-soft); font-weight: 500; }
+  .conversation-title{
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .conversation-delete-btn{
+    flex-shrink: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 22px; height: 22px;
+    border-radius: 6px;
+    color: var(--ink-soft);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+  }
+  .conversation-item:hover .conversation-delete-btn{ display: flex; }
+  .conversation-delete-btn:hover{ background: #fff; color: #D93025; }
+  .conversation-empty-hint{
+    font-size: 12px;
+    color: var(--ink-soft);
+    padding: 8px 10px;
+  }
+  .conversation-loading{
+    font-size: 12px;
+    color: var(--ink-soft);
+    padding: 8px 10px;
+  }
+
+  .chat-area{
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    justify-content: center;
+  }
+
+  .chat-inner{
+    width: 100%;
+    max-width: 720px;
+    padding: 20px 24px 20px;
+  }
+
+  /* Empty state */
+  .empty-state{
+    height: 100%;
+    min-height: 60vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .empty-mark{
+    width: 46px; height: 46px;
+    border-radius: 12px;
+    background: var(--accent);
+    display: flex; align-items:center; justify-content:center;
+    color: white; font-family: 'Fraunces', serif; font-weight: 600; font-size: 22px;
+    margin-bottom: 22px;
+  }
+
+  .empty-title{
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 28px;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+
+  .empty-sub{
+    font-size: 14.5px;
+    color: var(--ink-soft);
+    margin-bottom: 4px;
+  }
+
+  .empty-warning{
+    font-size: 13px;
+    color: var(--accent);
+    margin-top: 14px;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+
+  /* Messages */
+  .msg{
+    margin-bottom: 24px;
+    display: flex;
+    gap: 12px;
+  }
+  .msg.user{ justify-content: flex-end; }
+
+  .msg .bubble{
+    max-width: 78%;
+    font-size: 15px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+  }
+
+  .msg.user .bubble{
+    background: var(--accent-soft);
+    padding: 10px 16px;
+    border-radius: 14px;
+    color: var(--ink);
+  }
+
+  .msg.assistant .bubble{
+    color: var(--ink);
+  }
+
+  .msg.assistant .icon{
+    width: 26px; height: 26px;
+    border-radius: 7px;
+    background: var(--accent);
+    flex-shrink: 0;
+    display: flex; align-items:center; justify-content:center;
+    color: white; font-family: 'Fraunces', serif; font-weight: 600; font-size: 13px;
+    margin-top: 2px;
+  }
+
+  .bubble-text{
+    white-space: pre-wrap;
+  }
+  .spinner-logo{
+    display: inline-block;
+    width: 34px;
+    height: 34px;
+    vertical-align: middle;
+    margin-left: 4px;
+    animation: spin 1.1s linear infinite;
+  }
+  @keyframes spin{
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  /* Composer */
+  .composer-wrap{
+    display: flex;
+    justify-content: center;
+    padding: 0 24px 20px;
+    flex-shrink: 0;
+  }
+
+  .composer{
+    width: 100%;
+    max-width: 720px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 14px 16px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02), 0 8px 24px rgba(43,39,37,0.05);
+  }
+
+  .composer textarea{
+    width: 100%;
+    border: none;
+    outline: none;
+    resize: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    color: var(--ink);
+    background: transparent;
+    max-height: 160px;
+    min-height: 24px;
+  }
+  .composer textarea::placeholder{ color: var(--ink-soft); }
+
+  .composer-actions{
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    margin-top: 10px;
+  }
+
+  .send-btn{
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    background: var(--accent);
+    border: none;
+    color: white;
+    display: flex; align-items:center; justify-content:center;
+    cursor: pointer;
+    font-size: 16px;
+  }
+  .send-btn:hover{ opacity: 0.9; }
+  .send-btn:disabled{ opacity: 0.5; cursor: not-allowed; }
+
+  .footnote{
+    text-align: center;
+    font-size: 11.5px;
+    color: var(--ink-soft);
+    padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+    flex-shrink: 0;
+  }
+
+  /* ---- Login screen ---- */
+  #loginScreen{
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 22px;
+    background: var(--bg);
+    padding: 24px;
+    text-align: center;
+  }
+  #loginScreen .login-mark{
+    width: 56px; height: 56px;
+    border-radius: 16px;
+    background: var(--ink);
+    color: var(--bg);
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 26px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #loginScreen .login-title{
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 22px;
+    color: var(--ink);
+  }
+  #loginScreen .login-sub{
+    font-size: 14px;
+    color: var(--ink-soft);
+    max-width: 320px;
+  }
+  .google-signin-btn{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 11px 22px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    color: var(--ink);
+    font-size: 14.5px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .google-signin-btn:hover{ background: var(--accent-soft); }
+  .google-signin-btn:disabled{ opacity: 0.6; cursor: not-allowed; }
+  .login-error{
+    font-size: 13px;
+    color: #c0392b;
+    max-width: 320px;
+    display: none;
+  }
+  .login-error.show{ display: block; }
+
+  /* App tersembunyi sampai user login */
+  body.app-locked .topbar,
+  body.app-locked .sidebar,
+  body.app-locked .chat-area,
+  body.app-locked .composer-wrap,
+  body.app-locked .footnote,
+  body.app-locked .overlay,
+  body.app-locked .edge-swipe-zone{
+    display: none !important;
+  }
+
+  /* ---- Info user & logout di sidebar (seperti Claude) ---- */
+  .user-card{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 6px;
+    border-radius: 10px;
+  }
+  .user-card:hover{ background: var(--panel); }
+  .user-card img{
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .user-card-info{
+    min-width: 0;
+    flex: 1;
+  }
+  .user-card-name{
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .user-card-email{
+    font-size: 11.5px;
+    color: var(--ink-soft);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  /* ---- Tombol footer akun (bisa diklik seluruhnya untuk buka Pengaturan) ---- */
+  .user-card-btn{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 6px;
+    border-radius: 10px;
+    width: 100%;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    text-align: left;
+  }
+  .user-card-btn:hover{ background: var(--panel); }
+  .user-card-btn img{
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .user-card-info{
+    min-width: 0;
+    flex: 1;
+  }
+  .user-card-name{
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .user-card-email{
+    font-size: 11.5px;
+    color: var(--ink-soft);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* ---- Layar Pengaturan: modal terpisah, bukan bagian dari sidebar ---- */
+  #settingsScreen{
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    background: var(--bg);
+    display: none;
+  }
+  #settingsScreen.open{ display: block; }
+
+  .settings-view{
+    position: absolute;
+    inset: 0;
+    display: none;
+    flex-direction: column;
+  }
+  .settings-view.open{ display: flex; }
+
+  .settings-topbar{
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px;
+    padding-top: calc(16px + env(safe-area-inset-top, 0px));
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .settings-back-btn{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .settings-back-btn:hover{ background: var(--panel); }
+  .settings-topbar-title{
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 18px;
+    color: var(--ink);
+  }
+  .settings-body{
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+  }
+</style>
+</head>
+<body class="app-locked">
+
+  <!-- ---- Login screen (wajib login sebelum bisa chat) ---- -->
+  <div id="loginScreen">
+    <div class="login-mark">C</div>
+    <div class="login-title" data-i18n="loginTitle">Masuk ke Codspire</div>
+    <div class="login-sub" data-i18n="loginSub">Login dengan akun Google kamu untuk mulai mengobrol dengan Codspire.</div>
+    <button class="google-signin-btn" id="googleSignInBtn">
+      <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
+        <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"/>
+        <path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"/>
+        <path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0 1 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/>
+        <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"/>
+      </svg>
+      <span id="googleSignInLabel" data-i18n="googleSignIn">Masuk dengan Google</span>
+    </button>
+    <div class="login-error" id="loginError"></div>
+  </div>
+
+  <!-- ---- Layar Pengaturan (modal terpisah, bukan di dalam sidebar) ---- -->
+  <div id="settingsScreen">
+    <!-- View: Pengaturan -->
+    <div class="settings-view open" id="settingsRootView">
+      <div class="settings-topbar">
+        <button class="settings-back-btn" id="closeSettingsBtn" aria-label="Tutup">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+        </button>
+        <div class="settings-topbar-title" data-i18n="settingsTitle">Pengaturan</div>
+      </div>
+      <div class="settings-body">
+        <button class="menu-item" id="openLanguageMenu">
+          <span class="menu-icon" style="color: var(--ink);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="2" y1="12" x2="22" y2="12"></line>
+              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+            </svg>
+          </span>
+          <span data-i18n="settingsLanguage">Pilih bahasa</span>
+        </button>
+        <button class="menu-item" id="logoutBtn" style="color: #D93025;">
+          <span class="menu-icon" style="color: #D93025;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <polyline points="16 17 21 12 16 7"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+          </span>
+          <span data-i18n="settingsLogout">Keluar</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- View: Pilih Bahasa -->
+    <div class="settings-view" id="languageView">
+      <div class="settings-topbar">
+        <button class="settings-back-btn" id="backFromLanguage" aria-label="Kembali">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+        </button>
+        <div class="settings-topbar-title" data-i18n="languagePanelTitle">Pilih Bahasa</div>
+      </div>
+      <div class="settings-body">
+        <button class="menu-item lang-option" id="langIdBtn" data-lang-option="id">
+          <span data-i18n="languageIndonesian">Bahasa Indonesia</span>
+          <svg class="lang-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-left:auto;">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </button>
+        <button class="menu-item lang-option" id="langEnBtn" data-lang-option="en">
+          <span data-i18n="languageEnglish">English</span>
+          <svg class="lang-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-left:auto;">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="topbar">
+    <button class="hamburger-btn" id="hamburgerBtn" aria-label="Buka menu">
+      <div class="hamburger-icon">
+        <div></div><div></div><div></div>
+      </div>
+    </button>
+  </div>
+
+  <div class="edge-swipe-zone" id="edgeSwipeZone"></div>
+  <div class="overlay" id="overlay"></div>
+
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-brand">
+        <div class="brand-mark">C</div>
+        <div class="sidebar-brand-name" data-i18n="sidebarBrand">Codspire</div>
+      </div>
+      <button class="close-btn" id="closeSidebarBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Menu utama -->
+    <div class="menu-panel open" id="mainMenuPanel">
+      <button class="new-chat-btn" id="newChatBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        <span data-i18n="newChat">Obrolan Baru</span>
+      </button>
+
+      <div class="menu-list">
+        <button class="menu-item" id="openApiKeyMenu">
+          <span class="menu-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="7.5" cy="15.5" r="5.5"></circle>
+              <path d="M11 11.5 21 1.5"></path>
+              <path d="M16 6.5 19 9.5"></path>
+              <path d="M19.5 3 22 5.5"></path>
+            </svg>
+          </span>
+          <span data-i18n="menuApiKey">API Key</span>
+        </button>
+      </div>
+
+      <div class="settings-label" data-i18n="historyLabel">Riwayat</div>
+      <div class="conversation-list" id="conversationList">
+        <div class="conversation-loading" data-i18n="historyLoading">Memuat...</div>
+      </div>
+    </div>
+
+    <!-- Panel API Key -->
+    <div class="menu-panel" id="apiKeyMenuPanel">
+      <div class="back-row" id="backToMainMenu">
+        <span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+        </span>
+        <span data-i18n="back">Kembali</span>
+      </div>
+      <div class="settings-label" data-i18n="apiKeyPanelTitle">API Key Gemini</div>
+      <div class="settings-card">
+        <label for="apiKeyInput" data-i18n="apiKeyInputLabel">API Key Gemini</label>
+        <div class="key-input-row">
+          <input type="password" id="apiKeyInput" placeholder="Masukkan API key Gemini..." data-i18n-placeholder="apiKeyPlaceholder">
+          <button class="toggle-visibility" id="toggleVisibility">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          </button>
+        </div>
+        <button class="save-key-btn" id="saveKeyBtn" data-i18n="saveApiKey">Simpan API Key</button>
+        <button class="clear-key-btn" id="clearKeyBtn" data-i18n="clearApiKey">Hapus API Key</button>
+        <div class="key-status" id="keyStatus"></div>
+        <div class="key-hint" data-i18n-html="apiKeyHint">
+          Dapatkan API key gratis di <a href="https://aistudio.google.com/apikey" target="_blank">Google AI Studio</a>. Key disimpan hanya di browser kamu (localStorage), tidak dikirim ke server manapun selain Google.
+        </div>
+      </div>
+    </div>
+      <div class="sidebar-footer">
+      <div style="margin-bottom:10px;" data-i18n="modelActive">Model aktif: Gemini 3.5 Flash</div>
+      <button class="user-card-btn" id="openSettingsBtn" title="Pengaturan" aria-label="Pengaturan">
+        <img id="userPhoto" src="" alt="">
+        <div class="user-card-info">
+          <div class="user-card-name" id="userName">-</div>
+          <div class="user-card-email" id="userEmail">-</div>
+        </div>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0; color: var(--ink-soft);">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+      </button>
+      </div>
+    </div>
+
+  <div class="chat-area">
+    <div class="chat-inner" id="chatInner">
+      <div class="empty-state" id="emptyState">
+        <div class="empty-mark">C</div>
+        <div class="empty-title" data-i18n="emptyTitle">Halo, ada yang bisa dibantu?</div>
+        <div class="empty-sub" data-i18n="emptySub">Tanyakan apa saja — Codspire siap membantu.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="composer-wrap">
+    <div class="composer">
+      <textarea id="input" rows="1" placeholder="Tanyakan apa saja ke Codspire..." data-i18n-placeholder="inputPlaceholder"></textarea>
+      <div class="composer-actions">
+        <button class="send-btn" id="sendBtn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="12" y1="19" x2="12" y2="5"></line>
+            <polyline points="5 12 12 5 19 12"></polyline>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+  <div class="footnote" data-i18n="footnote">Codspire dapat membuat kesalahan. Periksa kembali info penting.</div>
+
+<script>
+  const MODEL = "gemini-3.5-flash";
+  const STORAGE_KEY = "codspire_gemini_api_key";
+  const LANG_STORAGE_KEY = "codspire_lang";
+
+  // ---- i18n ----
+  const translations = {
+    id: {
+      appTitle: "Codspire",
+      loginTitle: "Masuk ke Codspire",
+      loginSub: "Login dengan akun Google kamu untuk mulai mengobrol dengan Codspire.",
+      googleSignIn: "Masuk dengan Google",
+      googleSignInConnecting: "Menghubungkan...",
+      loginErrorGeneric: "Gagal masuk dengan Google. Coba lagi ya.",
+      sidebarBrand: "Codspire",
+      menuLabel: "Menu",
+      menuApiKey: "API Key",
+      back: "Kembali",
+      apiKeyPanelTitle: "API Key Gemini",
+      apiKeyInputLabel: "API Key Gemini",
+      apiKeyPlaceholder: "Masukkan API key Gemini...",
+      saveApiKey: "Simpan API Key",
+      clearApiKey: "Hapus API Key",
+      apiKeyHint: 'Dapatkan API key gratis di <a href="https://aistudio.google.com/apikey" target="_blank">Google AI Studio</a>. Key disimpan hanya di browser kamu (localStorage), tidak dikirim ke server manapun selain Google.',
+      apiKeyEmpty: "Isi API key terlebih dahulu.",
+      apiKeySaved: "API key tersimpan di browser ini.",
+      apiKeyCleared: "API key dihapus.",
+      settingsTitle: "Pengaturan",
+      settingsLanguage: "Pilih bahasa",
+      settingsLogout: "Keluar",
+      languagePanelTitle: "Pilih Bahasa",
+      languageIndonesian: "Bahasa Indonesia",
+      languageEnglish: "English",
+      modelActive: "Model aktif: Gemini 3.5 Flash",
+      emptyTitle: "Halo, ada yang bisa dibantu?",
+      emptySub: "Tanyakan apa saja — Codspire siap membantu.",
+      inputPlaceholder: "Tanyakan apa saja ke Codspire...",
+      footnote: "Codspire dapat membuat kesalahan. Periksa kembali info penting.",
+      apiKeyMissing: 'API key Gemini belum diatur. Klik ikon ☰ di kiri atas, lalu pilih menu "API Key" untuk memasukkan API key kamu.',
+      noResponse: "Maaf, tidak ada respons.",
+      responseFailed: "Gagal mendapat respons: {error}. Periksa API key kamu lewat menu ☰ → API Key.",
+      languageComingSoonAlert: "Fitur pilih bahasa akan segera hadir.",
+      newChat: "Obrolan Baru",
+      historyLabel: "Riwayat",
+      historyLoading: "Memuat...",
+      historyEmpty: "Belum ada percakapan.",
+      historyLoadFailed: "Gagal memuat riwayat.",
+      deleteConfirm: "Hapus percakapan ini?",
+      untitledChat: "Obrolan Baru"
+    },
+    en: {
+      appTitle: "Codspire",
+      loginTitle: "Sign in to Codspire",
+      loginSub: "Log in with your Google account to start chatting with Codspire.",
+      googleSignIn: "Sign in with Google",
+      googleSignInConnecting: "Connecting...",
+      loginErrorGeneric: "Google sign-in failed. Please try again.",
+      sidebarBrand: "Codspire",
+      menuLabel: "Menu",
+      menuApiKey: "API Key",
+      back: "Back",
+      apiKeyPanelTitle: "Gemini API Key",
+      apiKeyInputLabel: "Gemini API Key",
+      apiKeyPlaceholder: "Enter your Gemini API key...",
+      saveApiKey: "Save API Key",
+      clearApiKey: "Remove API Key",
+      apiKeyHint: 'Get a free API key at <a href="https://aistudio.google.com/apikey" target="_blank">Google AI Studio</a>. The key is stored only in your browser (localStorage) and never sent anywhere except Google.',
+      apiKeyEmpty: "Please enter an API key first.",
+      apiKeySaved: "API key saved in this browser.",
+      apiKeyCleared: "API key removed.",
+      settingsTitle: "Settings",
+      settingsLanguage: "Choose language",
+      settingsLogout: "Log out",
+      languagePanelTitle: "Choose Language",
+      languageIndonesian: "Bahasa Indonesia",
+      languageEnglish: "English",
+      modelActive: "Active model: Gemini 3.5 Flash",
+      emptyTitle: "Hi, how can I help?",
+      emptySub: "Ask anything — Codspire is here to help.",
+      inputPlaceholder: "Ask Codspire anything...",
+      footnote: "Codspire can make mistakes. Please double-check important information.",
+      apiKeyMissing: 'Gemini API key is not set yet. Click the ☰ icon in the top-left, then choose "API Key" to enter your API key.',
+      noResponse: "Sorry, no response was returned.",
+      responseFailed: "Failed to get a response: {error}. Check your API key via the ☰ → API Key menu.",
+      languageComingSoonAlert: "Language selection is coming soon.",
+      newChat: "New Chat",
+      historyLabel: "History",
+      historyLoading: "Loading...",
+      historyEmpty: "No conversations yet.",
+      historyLoadFailed: "Failed to load history.",
+      deleteConfirm: "Delete this conversation?",
+      untitledChat: "New Chat"
+    }
+  };
+
+  function detectDefaultLang(){
+    const saved = localStorage.getItem(LANG_STORAGE_KEY);
+    if (saved && translations[saved]) return saved;
+    const browserLang = (navigator.language || navigator.userLanguage || "en").toLowerCase();
+    return browserLang.startsWith("id") ? "id" : "en";
+  }
+
+  let currentLang = detectDefaultLang();
+
+  function t(key, vars){
+    let str = (translations[currentLang] && translations[currentLang][key])
+      || translations.en[key]
+      || key;
+    if (vars) {
+      Object.keys(vars).forEach(k => {
+        str = str.replace(`{${k}}`, vars[k]);
+      });
+    }
+    return str;
+  }
+
+  function applyLanguage(lang){
+    currentLang = translations[lang] ? lang : "en";
+    localStorage.setItem(LANG_STORAGE_KEY, currentLang);
+    document.documentElement.lang = currentLang;
+
+    // Teks biasa
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      el.textContent = t(key);
+    });
+    // Teks HTML (boleh mengandung tag, misal link)
+    document.querySelectorAll('[data-i18n-html]').forEach(el => {
+      const key = el.getAttribute('data-i18n-html');
+      el.innerHTML = t(key);
+    });
+    // Placeholder input/textarea
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+      const key = el.getAttribute('data-i18n-placeholder');
+      el.placeholder = t(key);
+    });
+    // Title dokumen
+    document.title = t('appTitle');
+
+    // Update indikator bahasa aktif di panel pilih bahasa (jika sudah dirender)
+    document.querySelectorAll('[data-lang-option]').forEach(el => {
+      const isActive = el.getAttribute('data-lang-option') === currentLang;
+      el.classList.toggle('active', isActive);
+    });
+  }
+  const SPINNER_LOGO_SRC = "data:image/png;base64,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";
+
+  const hamburgerBtn = document.getElementById('hamburgerBtn');
+  const closeSidebarBtn = document.getElementById('closeSidebarBtn');
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('overlay');
+  const edgeSwipeZone = document.getElementById('edgeSwipeZone');
+  const apiKeyInput = document.getElementById('apiKeyInput');
+  const toggleVisibility = document.getElementById('toggleVisibility');
+  const saveKeyBtn = document.getElementById('saveKeyBtn');
+  const clearKeyBtn = document.getElementById('clearKeyBtn');
+  const keyStatus = document.getElementById('keyStatus');
+  const mainMenuPanel = document.getElementById('mainMenuPanel');
+  const apiKeyMenuPanel = document.getElementById('apiKeyMenuPanel');
+  const openApiKeyMenu = document.getElementById('openApiKeyMenu');
+  const backToMainMenu = document.getElementById('backToMainMenu');
+
+  const settingsScreen = document.getElementById('settingsScreen');
+  const settingsRootView = document.getElementById('settingsRootView');
+  const languageView = document.getElementById('languageView');
+  const openSettingsBtn = document.getElementById('openSettingsBtn');
+  const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+  const openLanguageMenu = document.getElementById('openLanguageMenu');
+  const backFromLanguage = document.getElementById('backFromLanguage');
+  const langIdBtn = document.getElementById('langIdBtn');
+  const langEnBtn = document.getElementById('langEnBtn');
+
+  const chatInner = document.getElementById('chatInner');
+  const emptyState = document.getElementById('emptyState');
+  const input = document.getElementById('input');
+  const sendBtn = document.getElementById('sendBtn');
+  const newChatBtn = document.getElementById('newChatBtn');
+  const conversationList = document.getElementById('conversationList');
+
+  let history = [];
+  let apiKey = localStorage.getItem(STORAGE_KEY) || "";
+
+  // ---- Supabase (riwayat percakapan) ----
+  const SUPABASE_URL = "https://zqixlsvmrfmvxctpxbdl.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpxaXhsc3ZtcmZtdnhjdHB4YmRsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5MTY3NTQsImV4cCI6MjA5OTQ5Mjc1NH0.5vf8-4x35z0f5tqq-jvfQvwnVX6UgYlxh6o7SRJ4JtA";
+  const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  let currentUserId = null;      // Firebase UID user yang sedang login
+  let currentConversationId = null; // id percakapan yang sedang aktif (null = belum tersimpan / belum ada pesan)
+  let conversationsCache = [];   // daftar percakapan milik user, untuk render sidebar
+
+  function hideAllMenuPanels(){
+    mainMenuPanel.classList.remove('open');
+    apiKeyMenuPanel.classList.remove('open');
+  }
+  function showMainMenu(){
+    hideAllMenuPanels();
+    mainMenuPanel.classList.add('open');
+  }
+  function showApiKeyMenu(){
+    hideAllMenuPanels();
+    apiKeyMenuPanel.classList.add('open');
+    apiKeyInput.value = apiKey;
+    keyStatus.classList.remove('show');
+  }
+
+  function hideAllSettingsViews(){
+    settingsRootView.classList.remove('open');
+    languageView.classList.remove('open');
+  }
+  function openSettingsScreen(){
+    closeSidebar();
+    hideAllSettingsViews();
+    settingsRootView.classList.add('open');
+    settingsScreen.classList.add('open');
+  }
+  function closeSettingsScreen(){
+    settingsScreen.classList.remove('open');
+  }
+  function showLanguageView(){
+    hideAllSettingsViews();
+    languageView.classList.add('open');
+  }
+  function showSettingsRootView(){
+    hideAllSettingsViews();
+    settingsRootView.classList.add('open');
+  }
+
+  function openSidebar(){
+    sidebar.classList.add('open');
+    overlay.classList.add('open');
+    showMainMenu();
+  }
+  function openSidebarToApiKey(){
+    sidebar.classList.add('open');
+    overlay.classList.add('open');
+    showApiKeyMenu();
+  }
+  function closeSidebar(){
+    sidebar.classList.remove('open');
+    overlay.classList.remove('open');
+  }
+
+  hamburgerBtn.addEventListener('click', openSidebar);
+  closeSidebarBtn.addEventListener('click', closeSidebar);
+  overlay.addEventListener('click', closeSidebar);
+  openApiKeyMenu.addEventListener('click', showApiKeyMenu);
+  backToMainMenu.addEventListener('click', showMainMenu);
+
+  openSettingsBtn.addEventListener('click', openSettingsScreen);
+  closeSettingsBtn.addEventListener('click', closeSettingsScreen);
+  openLanguageMenu.addEventListener('click', showLanguageView);
+  backFromLanguage.addEventListener('click', showSettingsRootView);
+  langIdBtn.addEventListener('click', () => applyLanguage('id'));
+  langEnBtn.addEventListener('click', () => applyLanguage('en'));
+
+  // ---- Drag / swipe sidebar seperti drawer Claude ----
+  (function setupSidebarDrag(){
+    const SIDEBAR_WIDTH = 300;
+    const DRAG_ACTIVATE_THRESHOLD = 8; // px pergerakan minimum sebelum dianggap drag sungguhan
+    let dragging = false;      // sudah dikonfirmasi sebagai drag (lewat threshold)
+    let pending = false;       // pointer sedang ditekan, menunggu konfirmasi drag
+    let startX = 0;
+    let currentX = 0;
+    let startedFromOpen = false;
+
+    function setDragX(x){
+      const clamped = Math.max(-SIDEBAR_WIDTH, Math.min(0, x));
+      sidebar.style.transform = `translateX(${clamped}px)`;
+      const progress = 1 + (clamped / SIDEBAR_WIDTH); // 0 tertutup -> 1 terbuka
+      overlay.style.opacity = String(progress * 1);
+      if (progress > 0 && !overlay.classList.contains('open')) {
+        overlay.classList.add('open');
+      }
+    }
+
+    function beginPending(x){
+      pending = true;
+      dragging = false;
+      startX = x;
+      startedFromOpen = sidebar.classList.contains('open');
+      currentX = startedFromOpen ? 0 : -SIDEBAR_WIDTH;
+    }
+
+    function activateDrag(){
+      dragging = true;
+      sidebar.classList.add('dragging');
+      overlay.classList.add('dragging');
+    }
+
+    function moveDrag(x){
+      if (!pending) return;
+      const delta = x - startX;
+
+      if (!dragging) {
+        // Baru dianggap drag kalau sudah bergerak melewati ambang batas
+        if (Math.abs(delta) < DRAG_ACTIVATE_THRESHOLD) return;
+        activateDrag();
+      }
+
+      setDragX(currentX + delta);
+    }
+
+    function endDrag(x){
+      if (!pending) return;
+      const wasDragging = dragging;
+      pending = false;
+      dragging = false;
+      sidebar.classList.remove('dragging');
+      overlay.classList.remove('dragging');
+      sidebar.style.transform = '';
+      overlay.style.opacity = '';
+
+      // Kalau tidak pernah melewati ambang batas, ini klik/tap biasa -> jangan ubah apa-apa
+      if (!wasDragging) return;
+
+      const delta = x - startX;
+      const finalX = Math.max(-SIDEBAR_WIDTH, Math.min(0, currentX + delta));
+      // Sidebar hanya tertutup kalau digeser ke kiri sampai mentok / hampir mentok
+      const closeThreshold = -SIDEBAR_WIDTH * 0.5;
+
+      if (finalX <= closeThreshold) {
+        closeSidebar();
+      } else {
+        if (!sidebar.classList.contains('open')) {
+          openSidebar();
+        } else {
+          sidebar.classList.add('open');
+          overlay.classList.add('open');
+        }
+      }
+    }
+
+    // Mulai drag dari tepi kiri layar (sidebar tertutup) untuk membuka
+    edgeSwipeZone.addEventListener('touchstart', (e) => {
+      beginPending(e.touches[0].clientX);
+    }, { passive: true });
+
+    // Mulai drag dari dalam sidebar itu sendiri (untuk menutup dengan geser ke kiri sampai mentok)
+    sidebar.addEventListener('touchstart', (e) => {
+      beginPending(e.touches[0].clientX);
+    }, { passive: true });
+
+    window.addEventListener('touchmove', (e) => {
+      if (!pending) return;
+      moveDrag(e.touches[0].clientX);
+    }, { passive: true });
+
+    window.addEventListener('touchend', (e) => {
+      if (!pending) return;
+      endDrag(e.changedTouches[0].clientX);
+    });
+
+    // Dukungan mouse drag (desktop)
+    edgeSwipeZone.addEventListener('mousedown', (e) => beginPending(e.clientX));
+    sidebar.addEventListener('mousedown', (e) => {
+      if (e.target.closest('input, button, a, .menu-item')) return;
+      beginPending(e.clientX);
+    });
+    window.addEventListener('mousemove', (e) => moveDrag(e.clientX));
+    window.addEventListener('mouseup', (e) => endDrag(e.clientX));
+  })();
+
+  toggleVisibility.addEventListener('click', () => {
+    apiKeyInput.type = apiKeyInput.type === 'password' ? 'text' : 'password';
+  });
+
+  saveKeyBtn.addEventListener('click', () => {
+    const val = apiKeyInput.value.trim();
+    if (!val) {
+      keyStatus.textContent = t('apiKeyEmpty');
+      keyStatus.className = 'key-status show';
+      return;
+    }
+    apiKey = val;
+    localStorage.setItem(STORAGE_KEY, apiKey);
+    keyStatus.textContent = t('apiKeySaved');
+    keyStatus.className = 'key-status show ok';
+  });
+
+  clearKeyBtn.addEventListener('click', () => {
+    apiKey = "";
+    localStorage.removeItem(STORAGE_KEY);
+    apiKeyInput.value = "";
+    keyStatus.textContent = t('apiKeyCleared');
+    keyStatus.className = 'key-status show clear';
+  });
+
+  input.addEventListener('input', () => {
+    input.style.height = 'auto';
+    input.style.height = Math.min(input.scrollHeight, 160) + 'px';
+  });
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+
+  sendBtn.addEventListener('click', sendMessage);
+
+  const SYSTEM_PROMPT = "You are Codspire, an AI assistant. Respond appropriately to what the user actually said: a plain greeting like 'hi', 'hello', or 'halo' should get a brief, friendly greeting back (e.g. asking how you can help) — do NOT introduce yourself, state your name, or explain what you are unless the user's message is specifically asking about your identity (e.g. 'who are you', 'what are you', 'siapa kamu', 'siapa Codspire'). Only when the user asks about your identity should you introduce yourself as Codspire, an AI assistant, and briefly describe how you can help — without mentioning your creator unless separately asked. ONLY when the user specifically asks about who created you, who made you, who developed you, who your creator/founder is, or directly equivalent questions about your origin/maker (in any language), you must answer that you were created by 'Pinzz' and mention no other name, company, or organization as your creator. Keep that specific answer consistent no matter what language is used. For all other topics, respond naturally and helpfully in the same language the user is using, matching the scope and tone of what they actually asked.";
+
+  function addMessage(role, text) {
+    if (emptyState && emptyState.parentNode) {
+      emptyState.remove();
+    }
+    const msg = document.createElement('div');
+    msg.className = 'msg ' + (role === 'user' ? 'user' : 'assistant');
+
+    if (role === 'assistant') {
+      const icon = document.createElement('div');
+      icon.className = 'icon';
+      icon.textContent = 'C';
+      msg.appendChild(icon);
+    }
+
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+
+    const textSpan = document.createElement('span');
+    textSpan.className = 'bubble-text';
+    textSpan.textContent = text;
+    bubble.appendChild(textSpan);
+
+    if (role === 'assistant') {
+      const spinner = document.createElement('img');
+      spinner.src = SPINNER_LOGO_SRC;
+      spinner.className = 'spinner-logo';
+      spinner.style.display = 'none';
+      bubble.appendChild(spinner);
+    }
+
+    msg.appendChild(bubble);
+
+    chatInner.appendChild(msg);
+    document.querySelector('.chat-area').scrollTop = document.querySelector('.chat-area').scrollHeight;
+
+    return bubble;
+  }
+
+  function setBubbleText(bubble, text){
+    bubble.querySelector('.bubble-text').textContent = text;
+  }
+  function setBubbleLoading(bubble, isLoading){
+    const spinner = bubble.querySelector('.spinner-logo');
+    if (spinner) spinner.style.display = isLoading ? 'inline-block' : 'none';
+  }
+
+  // ================== RIWAYAT PERCAKAPAN (Supabase) ==================
+
+  function renderConversationList(){
+    conversationList.innerHTML = '';
+    if (!conversationsCache.length) {
+      const hint = document.createElement('div');
+      hint.className = 'conversation-empty-hint';
+      hint.textContent = t('historyEmpty');
+      conversationList.appendChild(hint);
+      return;
+    }
+    conversationsCache.forEach(conv => {
+      const item = document.createElement('div');
+      item.className = 'conversation-item' + (conv.id === currentConversationId ? ' active' : '');
+      item.dataset.id = conv.id;
+
+      const titleSpan = document.createElement('span');
+      titleSpan.className = 'conversation-title';
+      titleSpan.textContent = conv.title || t('untitledChat');
+      item.appendChild(titleSpan);
+
+      const delBtn = document.createElement('button');
+      delBtn.className = 'conversation-delete-btn';
+      delBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg>';
+      delBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        deleteConversation(conv.id);
+      });
+      item.appendChild(delBtn);
+
+      item.addEventListener('click', () => loadConversation(conv.id));
+      conversationList.appendChild(item);
+    });
+  }
+
+  async function refreshConversationList(){
+    if (!currentUserId) return;
+    try {
+      const { data, error } = await supabaseClient
+        .from('conversations')
+        .select('id, title, updated_at')
+        .eq('user_id', currentUserId)
+        .order('updated_at', { ascending: false });
+      if (error) throw error;
+      conversationsCache = data || [];
+      renderConversationList();
+    } catch (err) {
+      console.error('Gagal memuat daftar percakapan:', err);
+      conversationList.innerHTML = `<div class="conversation-empty-hint">${t('historyLoadFailed')}</div>`;
+    }
+  }
+
+  function clearChatUI(){
+    chatInner.innerHTML = '';
+    const fresh = document.createElement('div');
+    fresh.className = 'empty-state';
+    fresh.id = 'emptyState';
+    fresh.innerHTML = `
+      <div class="empty-mark">C</div>
+      <div class="empty-title" data-i18n="emptyTitle">${t('emptyTitle')}</div>
+      <div class="empty-sub" data-i18n="emptySub">${t('emptySub')}</div>`;
+    chatInner.appendChild(fresh);
+  }
+
+  function startNewConversation(){
+    currentConversationId = null;
+    history = [];
+    clearChatUI();
+    renderConversationList();
+    closeSidebar();
+  }
+
+  async function loadConversation(conversationId){
+    if (conversationId === currentConversationId) { closeSidebar(); return; }
+    try {
+      const { data, error } = await supabaseClient
+        .from('messages')
+        .select('role, content')
+        .eq('conversation_id', conversationId)
+        .order('created_at', { ascending: true });
+      if (error) throw error;
+
+      currentConversationId = conversationId;
+      history = (data || []).map(m => ({
+        role: m.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: m.content }]
+      }));
+
+      clearChatUI();
+      (data || []).forEach(m => addMessage(m.role === 'assistant' ? 'assistant' : 'user', m.content));
+      renderConversationList();
+      closeSidebar();
+    } catch (err) {
+      console.error('Gagal memuat percakapan:', err);
+    }
+  }
+
+  async function deleteConversation(conversationId){
+    if (!confirm(t('deleteConfirm'))) return;
+    try {
+      const { error } = await supabaseClient
+        .from('conversations')
+        .delete()
+        .eq('id', conversationId);
+      if (error) throw error;
+
+      conversationsCache = conversationsCache.filter(c => c.id !== conversationId);
+      if (conversationId === currentConversationId) {
+        startNewConversation();
+      } else {
+        renderConversationList();
+      }
+    } catch (err) {
+      console.error('Gagal menghapus percakapan:', err);
+    }
+  }
+
+  // Buat percakapan baru di Supabase, judul otomatis dari pesan pertama user
+  async function ensureConversationCreated(firstUserText){
+    if (currentConversationId || !currentUserId) return currentConversationId;
+    const title = firstUserText.length > 60 ? firstUserText.slice(0, 57) + '...' : firstUserText;
+    try {
+      const { data, error } = await supabaseClient
+        .from('conversations')
+        .insert({ user_id: currentUserId, title })
+        .select('id, title, updated_at')
+        .single();
+      if (error) throw error;
+      currentConversationId = data.id;
+      conversationsCache.unshift(data);
+      renderConversationList();
+    } catch (err) {
+      console.error('Gagal membuat percakapan baru:', err);
+    }
+    return currentConversationId;
+  }
+
+  async function saveMessageToSupabase(role, content){
+    if (!currentConversationId) return;
+    try {
+      const { error } = await supabaseClient
+        .from('messages')
+        .insert({ conversation_id: currentConversationId, role, content });
+      if (error) throw error;
+      // Sinkron ulang urutan (updated_at berubah lewat trigger di DB)
+      const idx = conversationsCache.findIndex(c => c.id === currentConversationId);
+      if (idx > 0) {
+        const [conv] = conversationsCache.splice(idx, 1);
+        conversationsCache.unshift(conv);
+        renderConversationList();
+      }
+    } catch (err) {
+      console.error('Gagal menyimpan pesan:', err);
+    }
+  }
+
+  newChatBtn.addEventListener('click', startNewConversation);
+
+  // Dipanggil oleh script Firebase Auth (module terpisah) saat status login berubah
+  window.onCodspireUserReady = function(uid){
+    currentUserId = uid;
+    currentConversationId = null;
+    conversationList.innerHTML = `<div class="conversation-loading">${t('historyLoading')}</div>`;
+    refreshConversationList();
+  };
+  window.onCodspireUserSignedOut = function(){
+    currentUserId = null;
+    currentConversationId = null;
+    conversationsCache = [];
+    history = [];
+    renderConversationList();
+  };
+
+  // ================== KIRIM PESAN ==================
+
+  async function sendMessage() {
+    const text = input.value.trim();
+    if (!text) return;
+
+    if (!apiKey) {
+      addMessage('user', text);
+      addMessage('assistant', t('apiKeyMissing'));
+      input.value = '';
+      input.style.height = 'auto';
+      openSidebarToApiKey();
+      return;
+    }
+
+    addMessage('user', text);
+    history.push({ role: 'user', parts: [{ text }] });
+    input.value = '';
+    input.style.height = 'auto';
+    sendBtn.disabled = true;
+
+    await ensureConversationCreated(text);
+    saveMessageToSupabase('user', text);
+
+    const loadingBubble = addMessage('assistant', '');
+    setBubbleLoading(loadingBubble, true);
+
+    let displayedText = '';   // teks yang sudah ditampilkan ke layar
+    let fullText = '';        // seluruh teks yang sudah diterima dari API
+    let streamDone = false;
+    let typingActive = false;
+
+    function runTypingLoop(){
+      if (typingActive) return;
+      typingActive = true;
+      const CHARS_PER_TICK = 2;
+      const TICK_MS = 12;
+
+      const tick = () => {
+        if (displayedText.length < fullText.length) {
+          displayedText = fullText.slice(0, displayedText.length + CHARS_PER_TICK);
+          setBubbleText(loadingBubble, displayedText);
+          document.querySelector('.chat-area').scrollTop = document.querySelector('.chat-area').scrollHeight;
+          setTimeout(tick, TICK_MS);
+        } else if (!streamDone) {
+          setTimeout(tick, TICK_MS);
+        } else {
+          typingActive = false;
+          setBubbleLoading(loadingBubble, false);
+          onTypingFinished();
+        }
+      };
+      tick();
+    }
+
+    let resolveTyping;
+    const typingFinished = new Promise(res => { resolveTyping = res; });
+    function onTypingFinished(){ resolveTyping(); }
+
+    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:streamGenerateContent?alt=sse&key=${apiKey}`;
+
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
+          contents: history
+        })
+      });
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => null);
+        throw new Error(errData?.error?.message || `HTTP ${response.status}`);
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop();
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed.startsWith('data:')) continue;
+          const jsonStr = trimmed.slice(5).trim();
+          if (!jsonStr) continue;
+
+          try {
+            const chunk = JSON.parse(jsonStr);
+            const pieceText = chunk?.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('') || '';
+            if (pieceText) {
+              fullText += pieceText;
+              runTypingLoop();
+            }
+          } catch (e) {
+            // baris SSE tidak lengkap / bukan JSON valid, dilewati
+          }
+        }
+      }
+
+      streamDone = true;
+      if (!fullText) {
+        setBubbleLoading(loadingBubble, false);
+        setBubbleText(loadingBubble, t('noResponse'));
+        fullText = t('noResponse');
+      } else {
+        runTypingLoop(); // pastikan loop jalan/selesai walau chunk terakhir kecil
+        await typingFinished;
+      }
+
+      history.push({ role: 'model', parts: [{ text: fullText }] });
+      saveMessageToSupabase('assistant', fullText);
+
+    } catch (err) {
+      streamDone = true;
+      setBubbleLoading(loadingBubble, false);
+      setBubbleText(loadingBubble, t('responseFailed', { error: err.message }));
+    } finally {
+      sendBtn.disabled = false;
+    }
+  }
+
+  // Terapkan bahasa (default dari bahasa browser, atau tersimpan sebelumnya)
+  applyLanguage(currentLang);
+</script>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+  import {
+    getAuth,
+    GoogleAuthProvider,
+    signInWithPopup,
+    signOut,
+    onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBLUI-5cRj9L0i_EPW5NRryxYZ9h5AyWu0",
+    authDomain: "codspire-ai-8d409.firebaseapp.com",
+    projectId: "codspire-ai-8d409",
+    storageBucket: "codspire-ai-8d409.firebasestorage.app",
+    messagingSenderId: "155770486380",
+    appId: "1:155770486380:web:2801c938a8960abe52a249"
+  };
+
+  const firebaseApp = initializeApp(firebaseConfig);
+  const auth = getAuth(firebaseApp);
+  const googleProvider = new GoogleAuthProvider();
+
+  const loginScreen = document.getElementById('loginScreen');
+  const googleSignInBtn = document.getElementById('googleSignInBtn');
+  const googleSignInLabel = document.getElementById('googleSignInLabel');
+  const loginError = document.getElementById('loginError');
+
+  const userPhoto = document.getElementById('userPhoto');
+  const userName = document.getElementById('userName');
+  const userEmail = document.getElementById('userEmail');
+  const logoutBtn = document.getElementById('logoutBtn');
+
+  function showLoginError(message){
+    loginError.textContent = message;
+    loginError.classList.add('show');
+  }
+  function clearLoginError(){
+    loginError.textContent = '';
+    loginError.classList.remove('show');
+  }
+
+  googleSignInBtn.addEventListener('click', async () => {
+    clearLoginError();
+    googleSignInBtn.disabled = true;
+    googleSignInLabel.textContent = 'Menghubungkan...';
+    try {
+      await signInWithPopup(auth, googleProvider);
+      // onAuthStateChanged akan menangani transisi ke app setelah ini
+    } catch (err) {
+      console.error('Login gagal:', err);
+      showLoginError('Gagal masuk dengan Google. Coba lagi ya.');
+    } finally {
+      googleSignInBtn.disabled = false;
+      googleSignInLabel.textContent = 'Masuk dengan Google';
+    }
+  });
+
+  logoutBtn.addEventListener('click', async () => {
+    try {
+      await signOut(auth);
+    } catch (err) {
+      console.error('Gagal keluar:', err);
+    }
+  });
+
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      // User sudah login -> tampilkan app, sembunyikan layar login
+      document.body.classList.remove('app-locked');
+      loginScreen.style.display = 'none';
+
+      userPhoto.src = user.photoURL || '';
+      userPhoto.alt = user.displayName || user.email || 'User';
+      userName.textContent = user.displayName || 'Pengguna';
+      userEmail.textContent = user.email || '';
+
+      window.currentUserId = user.uid;
+      if (window.onCodspireUserReady) window.onCodspireUserReady(user.uid);
+    } else {
+      // Belum login -> paksa ke layar login, sembunyikan seluruh app
+      document.body.classList.add('app-locked');
+      loginScreen.style.display = 'flex';
+
+      window.currentUserId = null;
+      if (window.onCodspireUserSignedOut) window.onCodspireUserSignedOut();
+    }
+  });
+</script>
+
+</body>
+</html>
