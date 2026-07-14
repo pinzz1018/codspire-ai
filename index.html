@@ -18,7 +18,21 @@
     --border: #E7E1D6;
   }
 
-  *{ box-sizing: border-box; margin:0; padding:0; }
+  *{ box-sizing: border-box; margin:0; padding:0; -webkit-tap-highlight-color: transparent; }
+
+  button, a, [role="button"], input, textarea{
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none;
+    user-select: none;
+    outline: none;
+  }
+  button:focus, [role="button"]:focus{
+    outline: none;
+  }
+  input, textarea{
+    -webkit-user-select: text;
+    user-select: text;
+  }
 
   body{
     font-family: 'Inter', sans-serif;
@@ -559,8 +573,208 @@
   .composer-actions{
     display: flex;
     align-items: center;
-    justify-content: flex-end;
+    justify-content: space-between;
+    gap: 8px;
     margin-top: 10px;
+  }
+
+  .composer-actions-right{
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .composer-icon-btn{
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--ink-soft);
+    display: flex; align-items:center; justify-content:center;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .composer-icon-btn:hover{ background: var(--accent-soft); color: var(--ink); }
+  .composer-icon-btn.recording{
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+    animation: mic-pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes mic-pulse{
+    0%, 100% { box-shadow: 0 0 0 0 rgba(217,119,87,0.35); }
+    50% { box-shadow: 0 0 0 6px rgba(217,119,87,0); }
+  }
+
+  .model-select-wrap{
+    position: relative;
+    min-width: 0;
+    flex: 1;
+    display: flex;
+    justify-content: flex-start;
+  }
+
+  .model-select-btn{
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    max-width: 100%;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 7px 10px;
+    font-family: 'Inter', sans-serif;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .model-select-btn:hover{ background: var(--accent-soft); }
+  .model-select-btn span{
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .model-select-btn svg{ flex-shrink: 0; color: var(--ink-soft); }
+
+  /* ---- Bottom sheet: Pilih Model ---- */
+  .model-sheet-overlay{
+    position: fixed;
+    inset: 0;
+    background: rgba(43,39,37,0.35);
+    z-index: 60;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+  .model-sheet-overlay.open{
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .model-sheet{
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    z-index: 61;
+    background: var(--panel);
+    border-radius: 20px 20px 0 0;
+    padding: 10px 18px calc(18px + env(safe-area-inset-bottom, 0px));
+    height: 0;
+    transition: height 0.25s ease;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+  .model-sheet.dragging{
+    transition: none;
+  }
+  .model-sheet-overlay.open .model-sheet{
+    height: 25vh;
+  }
+
+  .model-sheet-handle{
+    width: 36px; height: 4px;
+    border-radius: 2px;
+    background: var(--border);
+    margin: 4px auto 14px;
+    cursor: grab;
+    touch-action: none;
+  }
+  .model-sheet-handle-zone{
+    padding: 6px 0 0;
+    margin: -6px 0 0;
+    touch-action: none;
+    cursor: grab;
+  }
+  .model-sheet-handle-zone:active{
+    cursor: grabbing;
+  }
+
+  .model-sheet-header{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    margin-bottom: 18px;
+  }
+  .model-sheet-title{
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 18px;
+    color: var(--ink);
+  }
+  .model-sheet-close{
+    position: absolute;
+    left: 0;
+    width: 30px; height: 30px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .model-sheet-close:hover{ background: var(--accent-soft); }
+
+  .model-sheet-item{
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 6px;
+    border-radius: 12px;
+    cursor: pointer;
+  }
+  .model-sheet-item:hover{ background: var(--accent-soft); }
+  .model-sheet-item-text{ min-width: 0; }
+  .model-sheet-item-name{
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 3px;
+  }
+  .model-sheet-item-desc{
+    font-size: 13.5px;
+    color: var(--ink-soft);
+  }
+  .model-sheet-item-check{
+    flex-shrink: 0;
+    color: var(--accent);
+    margin-top: 3px;
+  }
+
+  /* ---- Bottom sheet: Tambahkan ke chat (attach) ---- */
+  .attach-sheet-grid{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+  .attach-sheet-option{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    background: transparent;
+    border: none;
+    border-radius: 14px;
+    padding: 16px 8px;
+    cursor: pointer;
+  }
+  .attach-sheet-option:hover{ background: var(--accent-soft); }
+  .attach-sheet-option-icon{
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink);
+  }
+  .attach-sheet-option-label{
+    font-size: 13.5px;
+    color: var(--ink);
+    font-weight: 500;
   }
 
   .send-btn{
@@ -572,6 +786,7 @@
     display: flex; align-items:center; justify-content:center;
     cursor: pointer;
     font-size: 16px;
+    flex-shrink: 0;
   }
   .send-btn:hover{ opacity: 0.9; }
   .send-btn:disabled{ opacity: 0.5; cursor: not-allowed; }
@@ -979,16 +1194,124 @@
     <div class="composer">
       <textarea id="input" rows="1" placeholder="Tanyakan apa saja ke Codspire..." data-i18n-placeholder="inputPlaceholder"></textarea>
       <div class="composer-actions">
-        <button class="send-btn" id="sendBtn">
+        <button class="composer-icon-btn" id="attachBtn" type="button" aria-label="Lampirkan file" title="Lampirkan file">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <line x1="12" y1="19" x2="12" y2="5"></line>
-            <polyline points="5 12 12 5 19 12"></polyline>
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
           </svg>
         </button>
+
+        <div class="model-select-wrap" id="modelSelectWrap">
+          <button class="model-select-btn" id="modelSelectBtn" type="button" aria-haspopup="true" aria-expanded="false">
+            <span>Codspire Aether 1.0</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+        </div>
+
+        <div class="composer-actions-right">
+          <button class="composer-icon-btn" id="micBtn" type="button" aria-label="Input suara" title="Input suara">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+              <line x1="12" y1="19" x2="12" y2="23"></line>
+              <line x1="8" y1="23" x2="16" y2="23"></line>
+            </svg>
+          </button>
+          <button class="send-btn" id="sendBtn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="12" y1="19" x2="12" y2="5"></line>
+              <polyline points="5 12 12 5 19 12"></polyline>
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
   </div>
   <div class="footnote" data-i18n="footnote">Codspire dapat membuat kesalahan. Periksa kembali info penting.</div>
+
+  <!-- ---- Bottom sheet: Pilih Model ---- -->
+  <div class="model-sheet-overlay" id="modelSheetOverlay">
+    <div class="model-sheet" id="modelSheet">
+      <div class="model-sheet-handle-zone" id="modelSheetDragZone">
+        <div class="model-sheet-handle"></div>
+        <div class="model-sheet-header">
+          <button class="model-sheet-close" id="modelSheetClose" aria-label="Tutup">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+          <div class="model-sheet-title" data-i18n="modelSheetTitle">Pilih Model</div>
+        </div>
+      </div>
+      <div class="model-sheet-item">
+        <div class="model-sheet-item-text">
+          <div class="model-sheet-item-name">Codspire Aether 1.0</div>
+          <div class="model-sheet-item-desc" data-i18n="modelSheetDesc">Cepat, ringan, dan siap membantu kapan saja</div>
+        </div>
+        <svg class="model-sheet-item-check" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- ---- Bottom sheet: Tambahkan ke chat (attach) ---- -->
+  <div class="model-sheet-overlay" id="attachSheetOverlay">
+    <div class="model-sheet" id="attachSheet">
+      <div class="model-sheet-handle-zone" id="attachSheetDragZone">
+        <div class="model-sheet-handle"></div>
+        <div class="model-sheet-header">
+          <button class="model-sheet-close" id="attachSheetClose" aria-label="Tutup">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+          <div class="model-sheet-title" data-i18n="attachSheetTitle">Tambahkan ke chat</div>
+        </div>
+      </div>
+      <div class="attach-sheet-grid">
+        <button class="attach-sheet-option" id="attachOptionCamera" type="button">
+          <span class="attach-sheet-option-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+              <circle cx="12" cy="13" r="4"></circle>
+            </svg>
+          </span>
+          <span class="attach-sheet-option-label" data-i18n="attachCamera">Kamera</span>
+        </button>
+        <button class="attach-sheet-option" id="attachOptionPhoto" type="button">
+          <span class="attach-sheet-option-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <circle cx="8.5" cy="8.5" r="1.5"></circle>
+              <polyline points="21 15 16 10 5 21"></polyline>
+            </svg>
+          </span>
+          <span class="attach-sheet-option-label" data-i18n="attachPhoto">Foto</span>
+        </button>
+        <button class="attach-sheet-option" id="attachOptionFile" type="button">
+          <span class="attach-sheet-option-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="12" y1="18" x2="12" y2="12"></line>
+              <polyline points="9 15 12 12 15 15"></polyline>
+            </svg>
+          </span>
+          <span class="attach-sheet-option-label" data-i18n="attachFile">File</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Input file tersembunyi, dipicu lewat opsi di atas -->
+  <input type="file" id="fileInputCamera" accept="image/*" capture="environment" style="display:none;">
+  <input type="file" id="fileInputPhoto" accept="image/*" style="display:none;">
+  <input type="file" id="fileInputFile" style="display:none;">
 
 <script>
   const MODEL = "gemini-3.5-flash";
@@ -1038,7 +1361,15 @@
       historyEmpty: "Belum ada percakapan.",
       historyLoadFailed: "Gagal memuat riwayat.",
       deleteConfirm: "Hapus percakapan ini?",
-      untitledChat: "Obrolan Baru"
+      untitledChat: "Obrolan Baru",
+      attachComingSoon: "Fitur lampirkan file akan segera hadir.",
+      modelSheetTitle: "Pilih Model",
+      modelSheetDesc: "Cepat, ringan, dan siap membantu kapan saja",
+      attachSheetTitle: "Tambahkan ke chat",
+      attachCamera: "Kamera",
+      attachPhoto: "Foto",
+      attachFile: "File",
+      attachSelected: "Terlampir: {name}"
     },
     en: {
       appTitle: "Codspire",
@@ -1081,7 +1412,15 @@
       historyEmpty: "No conversations yet.",
       historyLoadFailed: "Failed to load history.",
       deleteConfirm: "Delete this conversation?",
-      untitledChat: "New Chat"
+      untitledChat: "New Chat",
+      attachComingSoon: "File attachments are coming soon.",
+      modelSheetTitle: "Choose Model",
+      modelSheetDesc: "Fast, lightweight, and ready to help anytime",
+      attachSheetTitle: "Add to chat",
+      attachCamera: "Camera",
+      attachPhoto: "Photo",
+      attachFile: "File",
+      attachSelected: "Attached: {name}"
     }
   };
 
@@ -1163,7 +1502,6 @@
   const langEnBtn = document.getElementById('langEnBtn');
 
   const chatInner = document.getElementById('chatInner');
-  const emptyState = document.getElementById('emptyState');
   const input = document.getElementById('input');
   const sendBtn = document.getElementById('sendBtn');
   const newChatBtn = document.getElementById('newChatBtn');
@@ -1392,11 +1730,250 @@
 
   sendBtn.addEventListener('click', sendMessage);
 
+  // ---- Bottom sheet generik: bisa di-drag, snap ke 25% / 50% / 75% / tutup ----
+  const SHEET_SNAP_POINTS = [0.25, 0.5, 0.75]; // fraksi tinggi viewport
+  const SHEET_CLOSE_THRESHOLD_FRACTION = 0.15;
+
+  function createDraggableSheet({ overlayEl, sheetEl, dragZoneEl, triggerBtn }){
+    let currentSnap = 0.25;
+
+    function setHeightPx(px){
+      sheetEl.style.height = Math.max(0, px) + 'px';
+    }
+    function setHeightFraction(fraction){
+      sheetEl.style.height = (fraction * window.innerHeight) + 'px';
+    }
+
+    function open(){
+      overlayEl.classList.add('open');
+      if (triggerBtn) triggerBtn.setAttribute('aria-expanded', 'true');
+      currentSnap = 0.25;
+      sheetEl.style.height = '0px';
+      requestAnimationFrame(() => {
+        setHeightFraction(currentSnap);
+      });
+    }
+    function close(){
+      overlayEl.classList.remove('open');
+      if (triggerBtn) triggerBtn.setAttribute('aria-expanded', 'false');
+      sheetEl.style.height = '';
+    }
+
+    overlayEl.addEventListener('click', (e) => {
+      if (e.target === overlayEl) close();
+    });
+
+    // ---- Drag / swipe ----
+    let dragging = false;
+    let startY = 0;
+    let startHeightPx = 0;
+
+    function getPointY(e){
+      return e.touches ? e.touches[0].clientY : e.clientY;
+    }
+
+    function onDragStart(e){
+      dragging = true;
+      startY = getPointY(e);
+      startHeightPx = sheetEl.getBoundingClientRect().height;
+      sheetEl.classList.add('dragging');
+    }
+
+    function onDragMove(e){
+      if (!dragging) return;
+      const currentY = getPointY(e);
+      const delta = startY - currentY; // positif = geser ke atas (nambah tinggi)
+      let newHeight = startHeightPx + delta;
+      newHeight = Math.max(0, Math.min(window.innerHeight * 0.85, newHeight));
+      setHeightPx(newHeight);
+    }
+
+    function onDragEnd(){
+      if (!dragging) return;
+      dragging = false;
+      sheetEl.classList.remove('dragging');
+
+      const finalHeightPx = sheetEl.getBoundingClientRect().height;
+      const finalFraction = finalHeightPx / window.innerHeight;
+
+      if (finalFraction < SHEET_SNAP_POINTS[0] - SHEET_CLOSE_THRESHOLD_FRACTION) {
+        close();
+        return;
+      }
+
+      let nearest = SHEET_SNAP_POINTS[0];
+      let nearestDist = Math.abs(finalFraction - nearest);
+      for (const point of SHEET_SNAP_POINTS) {
+        const dist = Math.abs(finalFraction - point);
+        if (dist < nearestDist) {
+          nearest = point;
+          nearestDist = dist;
+        }
+      }
+      currentSnap = nearest;
+      setHeightFraction(nearest);
+    }
+
+    dragZoneEl.addEventListener('touchstart', onDragStart, { passive: true });
+    window.addEventListener('touchmove', onDragMove, { passive: true });
+    window.addEventListener('touchend', onDragEnd);
+
+    dragZoneEl.addEventListener('mousedown', onDragStart);
+    window.addEventListener('mousemove', onDragMove);
+    window.addEventListener('mouseup', onDragEnd);
+
+    return { open, close };
+  }
+
+  // ---- Bottom sheet: Pilih Model (fake, cuma 1 opsi statis) ----
+  const modelSelectBtn = document.getElementById('modelSelectBtn');
+  const modelSheetOverlay = document.getElementById('modelSheetOverlay');
+  const modelSheetClose = document.getElementById('modelSheetClose');
+  const modelSheet = document.getElementById('modelSheet');
+  const modelSheetDragZone = document.getElementById('modelSheetDragZone');
+
+  const modelSheetCtrl = createDraggableSheet({
+    overlayEl: modelSheetOverlay,
+    sheetEl: modelSheet,
+    dragZoneEl: modelSheetDragZone,
+    triggerBtn: modelSelectBtn
+  });
+
+  modelSelectBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    modelSheetCtrl.open();
+  });
+  modelSheetClose.addEventListener('click', modelSheetCtrl.close);
+  document.querySelectorAll('.model-sheet-item').forEach(item => {
+    item.addEventListener('click', modelSheetCtrl.close);
+  });
+
+  // ---- Bottom sheet: Tambahkan ke chat (attach) ----
+  const attachBtn = document.getElementById('attachBtn');
+  const attachSheetOverlay = document.getElementById('attachSheetOverlay');
+  const attachSheetClose = document.getElementById('attachSheetClose');
+  const attachSheet = document.getElementById('attachSheet');
+  const attachSheetDragZone = document.getElementById('attachSheetDragZone');
+
+  const attachSheetCtrl = createDraggableSheet({
+    overlayEl: attachSheetOverlay,
+    sheetEl: attachSheet,
+    dragZoneEl: attachSheetDragZone,
+    triggerBtn: attachBtn
+  });
+
+  attachBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    attachSheetCtrl.open();
+  });
+  attachSheetClose.addEventListener('click', attachSheetCtrl.close);
+
+  // ---- Opsi attach: buka file picker asli device ----
+  const fileInputCamera = document.getElementById('fileInputCamera');
+  const fileInputPhoto = document.getElementById('fileInputPhoto');
+  const fileInputFile = document.getElementById('fileInputFile');
+
+  function handlePickedFile(file){
+    if (!file) return;
+    // Belum ada logic kirim ke Gemini; sementara tampilkan nama file yang dipilih
+    // sebagai placeholder di dalam textarea composer.
+    const label = t('attachSelected', { name: file.name });
+    input.value = input.value ? input.value + '\n' + label : label;
+    input.style.height = 'auto';
+    input.style.height = Math.min(input.scrollHeight, 160) + 'px';
+  }
+
+  document.getElementById('attachOptionCamera').addEventListener('click', () => {
+    attachSheetCtrl.close();
+    fileInputCamera.click();
+  });
+  document.getElementById('attachOptionPhoto').addEventListener('click', () => {
+    attachSheetCtrl.close();
+    fileInputPhoto.click();
+  });
+  document.getElementById('attachOptionFile').addEventListener('click', () => {
+    attachSheetCtrl.close();
+    fileInputFile.click();
+  });
+
+  fileInputCamera.addEventListener('change', (e) => {
+    handlePickedFile(e.target.files[0]);
+    e.target.value = '';
+  });
+  fileInputPhoto.addEventListener('change', (e) => {
+    handlePickedFile(e.target.files[0]);
+    e.target.value = '';
+  });
+  fileInputFile.addEventListener('change', (e) => {
+    handlePickedFile(e.target.files[0]);
+    e.target.value = '';
+  });
+
+  // ---- Input suara (Web Speech API) ----
+  const micBtn = document.getElementById('micBtn');
+  const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  if (!SpeechRecognitionCtor) {
+    micBtn.style.display = 'none';
+  } else {
+    const recognition = new SpeechRecognitionCtor();
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.maxAlternatives = 1;
+
+    let isRecording = false;
+    let baseText = '';
+
+    function setRecognitionLang(){
+      recognition.lang = currentLang === 'id' ? 'id-ID' : 'en-US';
+    }
+
+    recognition.addEventListener('start', () => {
+      isRecording = true;
+      baseText = input.value ? input.value + ' ' : '';
+      micBtn.classList.add('recording');
+    });
+
+    recognition.addEventListener('result', (e) => {
+      let transcript = '';
+      for (let i = 0; i < e.results.length; i++) {
+        transcript += e.results[i][0].transcript;
+      }
+      input.value = baseText + transcript;
+      input.style.height = 'auto';
+      input.style.height = Math.min(input.scrollHeight, 160) + 'px';
+    });
+
+    recognition.addEventListener('end', () => {
+      isRecording = false;
+      micBtn.classList.remove('recording');
+    });
+
+    recognition.addEventListener('error', () => {
+      isRecording = false;
+      micBtn.classList.remove('recording');
+    });
+
+    micBtn.addEventListener('click', () => {
+      if (isRecording) {
+        recognition.stop();
+        return;
+      }
+      setRecognitionLang();
+      try {
+        recognition.start();
+      } catch (err) {
+        console.error('Gagal memulai input suara:', err);
+      }
+    });
+  }
+
   const SYSTEM_PROMPT = "You are Codspire, an AI assistant. Respond appropriately to what the user actually said: a plain greeting like 'hi', 'hello', or 'halo' should get a brief, friendly greeting back (e.g. asking how you can help) — do NOT introduce yourself, state your name, or explain what you are unless the user's message is specifically asking about your identity (e.g. 'who are you', 'what are you', 'siapa kamu', 'siapa Codspire'). Only when the user asks about your identity should you introduce yourself as Codspire, an AI assistant, and briefly describe how you can help — without mentioning your creator unless separately asked. ONLY when the user specifically asks about who created you, who made you, who developed you, who your creator/founder is, or directly equivalent questions about your origin/maker (in any language), you must answer that you were created by 'Pinzz' and mention no other name, company, or organization as your creator. Keep that specific answer consistent no matter what language is used. For all other topics, respond naturally and helpfully in the same language the user is using, matching the scope and tone of what they actually asked.";
 
   function addMessage(role, text) {
-    if (emptyState && emptyState.parentNode) {
-      emptyState.remove();
+    const emptyStateEl = document.getElementById('emptyState');
+    if (emptyStateEl && emptyStateEl.parentNode) {
+      emptyStateEl.remove();
     }
     const msg = document.createElement('div');
     msg.className = 'msg ' + (role === 'user' ? 'user' : 'assistant');
